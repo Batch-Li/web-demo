@@ -8,7 +8,7 @@
 
 ## 本地运行
 
-建议使用 Node.js 20.19 或更高版本。项目已包含 `package-lock.json`，组员拉取后按下面步骤运行：
+建议使用 Node.js 20.19 或更高版本。项目已包含 `package-lock.json`，拉取后按下面步骤运行：
 
 ```bash
 npm install
