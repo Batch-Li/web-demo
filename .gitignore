@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+coverage/
+current-*.png
+current-*.jpg
+public/assets/*-audit-sheet.jpg
