@@ -562,13 +562,13 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
   ];
   const analysisComplete = activeIndex >= analysisItems.length - 1;
   const activeItem = analysisItems[activeIndex] ?? analysisItems[analysisItems.length - 1];
-  const analysisProgress = Math.min(100, Math.round(((activeIndex + 1) / analysisItems.length) * 100));
+  const analysisProgressMarks = [17, 36, 57, 78, 100];
+  const analysisProgress = analysisProgressMarks[activeIndex] ?? analysisProgressMarks[analysisProgressMarks.length - 1];
   const analysisTitle = analysisComplete ? "识别完成" : "统一识别中";
   const analysisEyebrow = analysisComplete ? "分析完成" : "缓冲识别";
   const analysisCopy = analysisComplete
     ? "风险证据、评估规则和候选方案已生成，可以进入诊断报告。"
     : "采集完成后统一上传识别，系统正在把空间画面转化为风险证据和方案输入。";
-  const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
   const sourceFrames = tasks.slice(0, 4);
   const confidence = Math.min(97, 82 + risks.length * 3);
   const priorityRisks = risks.slice(0, 3);
@@ -601,9 +601,14 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
         <div className="recognition-viewport">
           <div className="source-frame-strip" aria-label="已采集源图帧">
             {sourceFrames.map((task, index) => (
-              <figure key={task.id} style={{ "--image": `url(${previewImage})` }}>
-                <img src={previewImage} alt={`${currentSpace.name}${task.title}`} />
-                <span>{String(index + 1).padStart(2, "0")}</span>
+              <figure key={task.id}>
+                <figcaption>{String(index + 1).padStart(2, "0")}</figcaption>
+                <div className="data-frame-lines" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <small>{task.title}</small>
               </figure>
             ))}
           </div>

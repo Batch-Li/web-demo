@@ -305,6 +305,11 @@ describe("demo logic", () => {
     expect(analysisSource).toContain("analysis-live-feed");
     expect(analysisSource).toContain("analysis-signal-grid");
     expect(analysisSource).toContain("AI 决策中枢");
+    expect(analysisSource).toContain("analysisProgressMarks");
+    expect(analysisSource).toContain("data-frame-lines");
+    expect(analysisSource).not.toContain("previewImage");
+    expect(analysisSource).not.toContain("<img src={previewImage}");
+    expect(analysisSource).not.toContain("Math.round(((activeIndex + 1) / analysisItems.length) * 100)");
     expect(analysisSource).not.toContain("analysis-orbit");
     expect(analysisSource).not.toContain("analysis-buffer-timeline");
     expect(analysisSource).toContain("analysis-wait-button");
@@ -322,6 +327,8 @@ describe("demo logic", () => {
     expect(styles).toContain(".recognition-viewport");
     expect(styles).toContain(".analysis-live-feed");
     expect(styles).toContain(".analysis-signal-grid");
+    expect(styles).toContain(".data-frame-lines");
+    expect(styles).not.toContain(".source-frame-strip img");
     expect(styles).not.toContain(".analysis-orbit");
     expect(styles).toContain(".analysis-wait-button:disabled");
     expect(styles).toContain(".scan-screen > *");
