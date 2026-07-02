@@ -1360,8 +1360,8 @@ blockquote {
 .bottom-nav {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  padding: 8px 14px 12px;
+  gap: 10px;
+  padding: 8px 18px 12px;
   border-top: 1px solid var(--line);
   background: rgba(255, 250, 242, 0.98);
   backdrop-filter: blur(12px);
@@ -1381,20 +1381,35 @@ blockquote {
 }
 
 .bottom-nav button.active {
-  color: #fffaf4;
-  background: var(--primary);
+  color: var(--primary-dark);
+  background: #fff2e4;
 }
 
 .bottom-nav button.center-action {
-  min-height: 68px;
-  margin-top: -22px;
-  color: #fffaf4;
-  background: var(--primary);
-  box-shadow: 0 12px 22px rgba(154, 74, 28, 0.24);
+  min-height: 76px;
+  margin-top: -28px;
+  border-radius: 0;
+  color: var(--primary-dark);
+  background: transparent;
+  gap: 5px;
 }
 
 .bottom-nav button.center-action.active {
-  background: #d86e29;
+  background: transparent;
+}
+
+.bottom-nav button.center-action svg {
+  width: 56px;
+  height: 56px;
+  padding: 15px;
+  border-radius: 50%;
+  color: #fffaf4;
+  background: var(--primary);
+  box-shadow: 0 10px 18px rgba(154, 74, 28, 0.22);
+}
+
+.bottom-nav button.center-action:active svg {
+  transform: translateY(1px) scale(0.98);
 }
 
 .bottom-nav span {

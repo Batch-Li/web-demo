@@ -59,13 +59,7 @@ const entranceIcons = {
 
 const bottomNavOrder = ["mall", "scan", "community"];
 
-const spacePreviewImages = {
-  bathroom: "/assets/community/bathroom-after.png",
-  bedroom: "/assets/community/bedroom-night-light.png",
-  corridor: "/assets/community/corridor-cable.png"
-};
-
-const homePreviewImages = {
+const scanPreviewImages = {
   bathroom: "/assets/community/threshold-question.png",
   bedroom: "/assets/community/bedroom-night-light.png",
   corridor: "/assets/community/corridor-cable.png"
@@ -286,7 +280,7 @@ function BottomNav({ activeEntrance, switchEntrance }) {
 }
 
 function HomeScreen({ currentSpace, tasks, setStep }) {
-  const previewImage = homePreviewImages[currentSpace.id] ?? homePreviewImages.bathroom;
+  const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
   const captureRoute = homeCaptureRoutes[currentSpace.id] ?? tasks.slice(0, 4).map((task) => task.title.replace("拍摄", ""));
 
   return (
@@ -390,7 +384,7 @@ function ScanScreen({
     setCompletedTasks((current) => (current.includes(taskId) ? current : [...current, taskId]));
   };
   const progress = Math.round((completedTasks.length / tasks.length) * 100);
-  const previewImage = spacePreviewImages[currentSpace.id] ?? spacePreviewImages.bathroom;
+  const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
   const captureComplete = completedTasks.length >= tasks.length;
 
   return (

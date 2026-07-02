@@ -196,7 +196,7 @@ describe("demo logic", () => {
     const appSource = readFileSync(appPath, "utf8");
     const styles = readFileSync(stylesPath, "utf8");
 
-    expect(appSource).toContain("spacePreviewImages");
+    expect(appSource).toContain("scanPreviewImages");
     expect(appSource).toContain("capture-viewfinder");
     expect(appSource).not.toContain("className=\"capture-panel\"");
     expect(getCssRule(styles, ".scan-screen")).toContain("padding-top: 0");
@@ -231,7 +231,9 @@ describe("demo logic", () => {
     expect(homeSource).toContain("scan-home-preview");
     expect(homeSource).toContain("capture-route");
     expect(homeSource).toContain("扫描前只做采集引导");
-    expect(appSource).toContain("homePreviewImages");
+    expect(appSource).toContain("scanPreviewImages");
+    expect(appSource).not.toContain("spacePreviewImages");
+    expect(appSource).not.toContain("homePreviewImages");
     expect(homeSource).not.toContain("缺少扶手");
     expect(homeSource).not.toContain("门槛高差");
     expect(homeSource).not.toContain("高差位置");
