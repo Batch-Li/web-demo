@@ -60,9 +60,12 @@ const entranceIcons = {
 const bottomNavOrder = ["mall", "scan", "community"];
 
 const scanPreviewImages = {
-  bathroom: "/assets/community/threshold-question.png",
+  bathroom: "/assets/community/bathroom-after.png",
   bedroom: "/assets/community/bedroom-night-light.png",
-  corridor: "/assets/community/corridor-cable.png"
+  corridor: "/assets/community/corridor-cable.png",
+  kitchen: "/assets/spaces/kitchen.jpg",
+  living: "/assets/spaces/living-room.jpg",
+  balcony: "/assets/spaces/balcony.jpg"
 };
 
 const defaultElderProfile = {
@@ -273,45 +276,32 @@ function BottomNav({ activeEntrance, switchEntrance }) {
   );
 }
 
-function HomeScreen({ resetForSpace, setStep }) {
-  const startSpace = (spaceId) => {
-    resetForSpace(spaceId);
-    setStep(1);
-  };
-
+function HomeScreen({ setStep }) {
   return (
     <section className="screen scan-home-screen">
       <div className="scan-home-hero">
         <div className="scan-home-copy">
           <span className="eyebrow">空间扫描</span>
           <h2>
-            选择空间
+            开始空间
             <br />
-            开始评估
+            扫描评估
           </h2>
-          <p>先确认要评估的空间，再按引导拍摄关键视角，系统完成识别、报告和方案预览。</p>
+          <p>进入后确认评估空间，再按引导拍摄关键视角，系统完成识别、报告和方案预览。</p>
         </div>
-        <div className="scan-home-space-list" aria-label="选择评估空间">
-          {spaces.map((space) => {
-            const imageUrl = scanPreviewImages[space.id];
-            return (
-              <button
-                className="scan-home-space"
-                key={space.id}
-                onClick={() => startSpace(space.id)}
-                style={{ "--image": `url(${imageUrl})` }}
-              >
-                <span className="space-thumb">
-                  <img src={imageUrl} alt={`${space.name}空间示例`} />
-                </span>
-                <span>
-                  <strong>{space.name}</strong>
-                  <small>{space.scene}</small>
-                </span>
-                <ArrowRight size={16} />
-              </button>
-            );
-          })}
+        <div className="scan-home-overview" aria-label="扫描评估概览">
+          <div>
+            <Layers3 size={17} />
+            <span>覆盖 {spaces.length} 类家庭空间</span>
+          </div>
+          <div>
+            <Camera size={17} />
+            <span>按空间生成采集引导</span>
+          </div>
+          <div>
+            <ClipboardList size={17} />
+            <span>报告、方案、预览自动串联</span>
+          </div>
         </div>
       </div>
 
@@ -369,7 +359,11 @@ function SpaceScreen({ currentSpace, elderProfile, setElderProfile, resetForSpac
             className={`space-card ${space.id === currentSpace.id ? "selected" : ""}`}
             key={space.id}
             onClick={() => resetForSpace(space.id)}
+            style={{ "--image": `url(${scanPreviewImages[space.id]})` }}
           >
+            <span className="space-card-media">
+              <img src={scanPreviewImages[space.id]} alt={`${space.name}空间示例`} loading="lazy" />
+            </span>
             <span className="space-scene">{space.scene}</span>
             <strong>{space.name}</strong>
             <p>{space.description}</p>

@@ -11,6 +11,7 @@ import {
   products,
   riskRules,
   sampleCases,
+  scanTasks,
   spaces
 } from "./demoData.js";
 import {
@@ -44,6 +45,16 @@ describe("demo logic", () => {
     expect(mallCategories.map((category) => category.id)).toContain("service");
     expect(communityPosts.length).toBeGreaterThanOrEqual(4);
     expect(communityPosts.some((post) => post.comments > 0)).toBe(true);
+  });
+
+  it("covers enough home spaces with complete scan data", () => {
+    expect(spaces.length).toBeGreaterThanOrEqual(6);
+
+    spaces.forEach((space) => {
+      expect(scanTasks[space.id]?.length).toBeGreaterThanOrEqual(3);
+      expect(getRisksBySpace(riskRules, space.id).length).toBeGreaterThanOrEqual(3);
+      expect(sampleCases.some((caseItem) => caseItem.space === space.id)).toBe(true);
+    });
   });
 
   it("makes every mall item look like a real product listing", () => {
@@ -228,14 +239,15 @@ describe("demo logic", () => {
       appSource.indexOf("function SpaceScreen")
     );
 
-    expect(homeSource).toContain("scan-home-space-list");
-    expect(homeSource).toContain("scan-home-space");
+    expect(homeSource).toContain("scan-home-overview");
     expect(homeSource).toContain("capture-route");
-    expect(homeSource).toContain("选择空间");
+    expect(homeSource).toContain("开始空间");
     expect(homeSource).toContain("支持多个家庭空间");
-    expect(homeSource).toContain("resetForSpace");
     expect(homeSource).not.toContain("currentSpace");
     expect(homeSource).not.toContain("previewImage");
+    expect(homeSource).not.toContain("resetForSpace");
+    expect(homeSource).not.toContain("spaces.map");
+    expect(homeSource).not.toContain("scan-home-space");
     expect(homeSource).not.toContain("setStep(2)");
     expect(homeSource).not.toContain("卫生间");
     expect(styles).not.toContain("neutral-scan-panel");

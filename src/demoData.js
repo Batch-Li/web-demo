@@ -65,6 +65,30 @@ export const spaces = [
     time: "约 3 分钟",
     riskCount: 3,
     description: "检查通道宽度、门槛、线缆杂物和夜间暗区。"
+  },
+  {
+    id: "kitchen",
+    name: "厨房",
+    scene: "湿滑与取物",
+    time: "约 4 分钟",
+    riskCount: 3,
+    description: "识别油水湿滑、转身通道、橱柜取物高度和明火操作风险。"
+  },
+  {
+    id: "living",
+    name: "客厅",
+    scene: "活动与会客",
+    time: "约 3 分钟",
+    riskCount: 3,
+    description: "关注沙发起身、地毯翘边、茶几边角和常用动线连续性。"
+  },
+  {
+    id: "balcony",
+    name: "阳台/露台",
+    scene: "晾晒与高差",
+    time: "约 3 分钟",
+    riskCount: 3,
+    description: "检查门槛高差、晾晒动线、地面积水和护栏边缘风险。"
   }
 ];
 
@@ -145,6 +169,84 @@ export const scanTasks = {
       title: "拍摄过道照明",
       tip: "记录白天和夜间灯光覆盖，确认是否存在暗区",
       target: "照度不足、眩光暗区"
+    }
+  ],
+  kitchen: [
+    {
+      id: "kitchen_overview",
+      title: "拍摄厨房整体动线",
+      tip: "站在入口拍摄，保证操作台、灶台、地面和冰箱区域进入画面",
+      target: "转身空间、操作动线、地面状态"
+    },
+    {
+      id: "kitchen_floor",
+      title: "拍摄水槽和灶台前地面",
+      tip: "重点拍摄水槽、灶台、常站立区域和地垫边缘",
+      target: "油水湿滑、地垫翘边、防滑措施"
+    },
+    {
+      id: "kitchen_storage",
+      title: "拍摄常用橱柜和取物高度",
+      tip: "拍摄老人常拿取物品的吊柜、抽屉和台面高度",
+      target: "高处取物、弯腰取物、重物位置"
+    },
+    {
+      id: "kitchen_turning",
+      title: "拍摄冰箱和操作台之间通道",
+      tip: "保留冰箱门开启方向和通道宽度，确认是否影响转身",
+      target: "通道宽度、转身半径、临时堆物"
+    }
+  ],
+  living: [
+    {
+      id: "living_overview",
+      title: "拍摄客厅整体布局",
+      tip: "从入口或沙发侧拍摄，保留沙发、茶几、电视柜和主要通道",
+      target: "会客动线、家具间距、地面障碍"
+    },
+    {
+      id: "sofa_stand",
+      title: "拍摄沙发起身区域",
+      tip: "对准老人常坐位置，拍摄扶手高度、沙发深度和旁侧空间",
+      target: "起身支撑、旁侧通行、坐深高度"
+    },
+    {
+      id: "rug_edge",
+      title: "拍摄地毯和茶几边缘",
+      tip: "低角度拍摄地毯翘边、茶几角和老人常经过位置",
+      target: "绊倒点、磕碰点、地面连续性"
+    },
+    {
+      id: "living_light",
+      title: "拍摄客厅夜间照明",
+      tip: "记录沙发到卧室、卫生间方向的夜间灯光覆盖",
+      target: "夜间暗区、开关可达性、眩光"
+    }
+  ],
+  balcony: [
+    {
+      id: "balcony_overview",
+      title: "拍摄阳台整体空间",
+      tip: "从门内拍摄，保留门槛、地面、晾衣区和护栏边缘",
+      target: "门槛高差、晾晒动线、护栏边缘"
+    },
+    {
+      id: "balcony_threshold",
+      title: "拍摄阳台门槛高差",
+      tip: "从侧面拍摄推拉门轨道或门槛，并放入参考物",
+      target: "轨道高差、绊倒风险、辅具通过"
+    },
+    {
+      id: "balcony_floor",
+      title: "拍摄阳台地面和排水",
+      tip: "重点拍摄地面积水、排水口、洗衣机周边和防滑情况",
+      target: "积水湿滑、排水不畅、防滑措施"
+    },
+    {
+      id: "balcony_drying",
+      title: "拍摄晾晒取物位置",
+      tip: "拍摄晾衣杆高度、取物动作空间和是否需要踮脚伸手",
+      target: "高处取物、重心前倾、支撑点"
     }
   ]
 };
@@ -248,6 +350,105 @@ export const riskRules = [
     rule: "连续动线 + 暗区 + 老年视觉适应延迟",
     action: "增设人体感应灯或低位灯带，避免强眩光",
     requiresReview: false
+  },
+  {
+    id: "kitchen_slippery_floor",
+    space: "kitchen",
+    name: "厨房操作区油水湿滑",
+    level: "中高",
+    riskType: "跌倒",
+    evidence: ["水槽和灶台前为高频站立区", "地面可能有油水反光", "老人转身取物频繁"],
+    rule: "湿滑地面 + 转身动作 + 下肢稳定性下降",
+    action: "补充防滑垫或局部防滑处理，并保持水槽、灶台前连续防滑面",
+    requiresReview: false
+  },
+  {
+    id: "kitchen_high_storage",
+    space: "kitchen",
+    name: "常用物品取放高度不适",
+    level: "中",
+    riskType: "取物风险",
+    evidence: ["常用物品位于高吊柜或低柜深处", "取物需要踮脚或弯腰", "重物移动时缺少支撑"],
+    rule: "高处/低处取物 + 重心偏移 + 手部负重",
+    action: "把常用物下移到胸腰高度，重物放在易拿取层，必要时由设计师校核收纳布局",
+    requiresReview: true
+  },
+  {
+    id: "kitchen_turning_space",
+    space: "kitchen",
+    name: "冰箱和操作台之间转身空间不足",
+    level: "中",
+    riskType: "通行障碍",
+    evidence: ["冰箱门开启后压缩通道", "操作区临时堆物较多", "双手端物时转身余量不足"],
+    rule: "狭窄通道 + 双手持物 + 转身动作",
+    action: "整理操作台和地面堆放，保留连续转身空间，必要时调整冰箱开门方向",
+    requiresReview: false
+  },
+  {
+    id: "sofa_stand_support",
+    space: "living",
+    name: "沙发起身支撑不足",
+    level: "中高",
+    riskType: "起身障碍",
+    evidence: ["沙发坐深较深或过软", "旁侧缺少稳定扶手", "老人起身时需要借力"],
+    rule: "低位坐姿 + 支撑不足 + 膝髋力量下降",
+    action: "调整常坐位置，增加稳定扶手或选择更易起身的座椅",
+    requiresReview: true
+  },
+  {
+    id: "living_rug_edge",
+    space: "living",
+    name: "地毯或茶几边缘形成绊倒点",
+    level: "中",
+    riskType: "绊倒",
+    evidence: ["地毯边缘可能翘起", "茶几位于高频动线", "夜间经过时识别难度增加"],
+    rule: "地面边缘 + 高频动线 + 夜间视觉下降",
+    action: "固定地毯边缘，调整茶几位置或增加防撞保护",
+    requiresReview: false
+  },
+  {
+    id: "living_light_gap",
+    space: "living",
+    name: "客厅到卧室动线存在暗区",
+    level: "中",
+    riskType: "视觉识别",
+    evidence: ["沙发到卧室或卫生间方向光线不连续", "开关位置离常坐点较远", "夜间起身频率较高"],
+    rule: "夜间动线 + 照明断点 + 老年视觉适应延迟",
+    action: "补充低眩光感应灯，覆盖沙发旁、转角和门口位置",
+    requiresReview: false
+  },
+  {
+    id: "balcony_threshold_risk",
+    space: "balcony",
+    name: "阳台门槛或轨道高差明显",
+    level: "中高",
+    riskType: "绊倒",
+    evidence: ["推拉门轨道形成连续高差", "晾晒时双手持物", "雨天或洗衣后地面可能湿滑"],
+    rule: "高差点位 + 双手持物 + 地面湿滑",
+    action: "采用坡化垫或轨道缓坡处理，高差较大时进入人工复核",
+    requiresReview: true
+  },
+  {
+    id: "balcony_wet_floor",
+    space: "balcony",
+    name: "阳台地面积水湿滑",
+    level: "中",
+    riskType: "跌倒",
+    evidence: ["洗衣机和排水口周边可能积水", "地面材质反光", "晾晒区站立频率高"],
+    rule: "积水区域 + 晾晒动作 + 防滑不足",
+    action: "补充防滑垫或局部防滑处理，保持排水口周边干燥通畅",
+    requiresReview: false
+  },
+  {
+    id: "balcony_reach_risk",
+    space: "balcony",
+    name: "晾晒取物需要踮脚伸手",
+    level: "中",
+    riskType: "取物风险",
+    evidence: ["晾衣杆高度偏高", "取物时身体前倾", "旁侧缺少稳定支撑点"],
+    rule: "高处取物 + 重心前移 + 支撑不足",
+    action: "降低常用晾晒高度，设置可升降晾衣杆或稳定支撑点",
+    requiresReview: true
   }
 ];
 
@@ -282,7 +483,7 @@ export const products = [
     sales: 964,
     specs: ["壁挂安装", "防滑握杆", "多长度可选"],
     guarantees: ["承重确认", "包安装", "安装后复拍"],
-    riskIds: ["no_shower_grab_bar", "bedside_clearance"],
+    riskIds: ["no_shower_grab_bar", "bedside_clearance", "sofa_stand_support", "balcony_reach_risk"],
     budgetMin: 120,
     budgetMax: 260,
     condition: "适用于坐便器侧墙或床边起身点",
@@ -300,7 +501,7 @@ export const products = [
     sales: 3120,
     specs: ["吸盘固定", "可裁剪", "易清洗"],
     guarantees: ["防滑测试", "尺寸建议", "坏损补发"],
-    riskIds: ["slippery_floor"],
+    riskIds: ["slippery_floor", "kitchen_slippery_floor", "balcony_wet_floor"],
     budgetMin: 40,
     budgetMax: 120,
     condition: "需覆盖淋浴区主要站立面",
@@ -318,7 +519,7 @@ export const products = [
     sales: 246,
     specs: ["湿区适用", "上门处理", "复扫确认"],
     guarantees: ["施工验收", "防滑复测", "质保 6 个月"],
-    riskIds: ["slippery_floor"],
+    riskIds: ["slippery_floor", "kitchen_slippery_floor", "balcony_wet_floor"],
     budgetMin: 300,
     budgetMax: 800,
     condition: "适用于淋浴区、坐便区等湿滑点位",
@@ -336,7 +537,7 @@ export const products = [
     sales: 730,
     specs: ["橡胶材质", "多高度可选", "可定制宽度"],
     guarantees: ["高差测量", "裁切建议", "高差大需复核"],
-    riskIds: ["threshold_height"],
+    riskIds: ["threshold_height", "balcony_threshold_risk"],
     budgetMin: 60,
     budgetMax: 220,
     condition: "需补录门槛高度和宽度",
@@ -354,7 +555,7 @@ export const products = [
     sales: 5200,
     specs: ["人体感应", "低位照明", "充电/插电可选"],
     guarantees: ["低眩光", "免布线", "一年质保"],
-    riskIds: ["night_lighting", "corridor_light"],
+    riskIds: ["night_lighting", "corridor_light", "living_light_gap"],
     budgetMin: 30,
     budgetMax: 100,
     condition: "优先布置在床边、门口、转角",
@@ -390,7 +591,7 @@ export const products = [
     sales: 4100,
     specs: ["软质缓冲", "透明/木色", "免打孔"],
     guarantees: ["环保材质", "易替换", "多规格"],
-    riskIds: ["sharp_corner"],
+    riskIds: ["sharp_corner", "living_rug_edge"],
     budgetMin: 15,
     budgetMax: 60,
     condition: "覆盖高频经过点的柜角、桌角",
@@ -408,7 +609,7 @@ export const products = [
     sales: 2380,
     specs: ["地面贴合", "可裁剪", "防翘边"],
     guarantees: ["免工具", "线缆分类", "不伤地面"],
-    riskIds: ["wire_clutter"],
+    riskIds: ["wire_clutter", "kitchen_turning_space", "living_rug_edge"],
     budgetMin: 20,
     budgetMax: 80,
     condition: "固定充电线、插排和临时线缆",
@@ -426,7 +627,16 @@ export const products = [
     sales: 180,
     specs: ["图纸/照片校核", "施工建议", "30 分钟反馈"],
     guarantees: ["专业人员", "风险复核", "方案留档"],
-    riskIds: ["bedside_clearance", "corridor_width", "threshold_height", "no_shower_grab_bar"],
+    riskIds: [
+      "bedside_clearance",
+      "corridor_width",
+      "threshold_height",
+      "no_shower_grab_bar",
+      "kitchen_high_storage",
+      "sofa_stand_support",
+      "balcony_threshold_risk",
+      "balcony_reach_risk"
+    ],
     budgetMin: 199,
     budgetMax: 599,
     condition: "适用于涉及施工、安全安装或空间重排的风险项",
@@ -464,6 +674,36 @@ export const sampleCases = [
     actions: ["固定线缆", "移除翘边地垫", "安装感应灯"],
     feedback: "出入口通行更顺畅，老人回家换鞋动作更安全。",
     status: "复扫完成"
+  },
+  {
+    id: "case_kitchen_001",
+    space: "kitchen",
+    title: "厨房操作区防滑与收纳调整",
+    beforeRisk: 72,
+    afterRisk: 36,
+    actions: ["铺设防滑垫", "常用物下移", "整理操作台通道"],
+    feedback: "老人做饭时转身更顺，常用锅具不用再踮脚拿取。",
+    status: "待人工抽检"
+  },
+  {
+    id: "case_living_001",
+    space: "living",
+    title: "客厅沙发起身和地毯绊倒点优化",
+    beforeRisk: 65,
+    afterRisk: 31,
+    actions: ["固定地毯边缘", "加装起身扶手", "补充感应夜灯"],
+    feedback: "沙发旁起身更稳定，夜间从客厅回卧室的暗区减少。",
+    status: "复扫完成"
+  },
+  {
+    id: "case_balcony_001",
+    space: "balcony",
+    title: "阳台门槛和晾晒动线处理",
+    beforeRisk: 70,
+    afterRisk: 33,
+    actions: ["门槛坡化处理", "补充防滑垫", "降低晾晒高度"],
+    feedback: "晾晒衣物时不用跨高门槛，也减少了地面积水带来的滑倒风险。",
+    status: "待人工复核"
   }
 ];
 

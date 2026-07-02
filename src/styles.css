@@ -262,45 +262,36 @@ button {
   padding-bottom: 10px;
 }
 
-.scan-home-space-list {
+.scan-home-overview {
   display: grid;
   gap: 10px;
   padding: 0 18px 18px;
 }
 
-.scan-home-space {
-  min-height: 74px;
-  display: grid;
-  grid-template-columns: 82px 1fr 22px;
+.scan-home-overview div {
+  min-height: 48px;
+  display: flex;
   align-items: center;
   gap: 12px;
   border: 1px solid rgba(255, 250, 244, 0.16);
   border-radius: 8px;
-  padding: 8px 10px 8px 8px;
+  padding: 0 12px;
   color: #fffaf4;
   background: rgba(255, 250, 244, 0.08);
-  text-align: left;
-  cursor: pointer;
 }
 
-.scan-home-space strong {
-  display: block;
-  font-size: 17px;
-}
-
-.scan-home-space small {
-  display: block;
-  margin-top: 4px;
+.scan-home-overview span {
   color: rgba(255, 250, 244, 0.68);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 
-.scan-home-space svg {
+.scan-home-overview svg {
+  flex: none;
   color: rgba(255, 250, 244, 0.72);
 }
 
-.space-thumb,
+.space-card-media,
 .plan-product-media,
 .preview-product-thumb,
 .post-image-frame {
@@ -310,7 +301,7 @@ button {
   background: #ead7c2;
 }
 
-.space-thumb::before,
+.space-card-media::before,
 .capture-viewfinder::before,
 .product-image::before,
 .plan-product-media::before,
@@ -327,7 +318,7 @@ button {
   opacity: 0.72;
 }
 
-.space-thumb img,
+.space-card-media img,
 .capture-viewfinder img,
 .product-image img,
 .plan-product-thumb,
@@ -335,19 +326,6 @@ button {
 .post-image-frame img {
   position: relative;
   z-index: 1;
-}
-
-.space-thumb {
-  width: 82px;
-  height: 58px;
-  display: block;
-}
-
-.space-thumb img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
 }
 
 .scan-home-preview {
@@ -619,6 +597,10 @@ button {
   border-top: 6px solid rgba(241, 228, 214, 0.86);
 }
 
+.space-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .space-card,
 .profile-panel,
 .capture-panel,
@@ -633,7 +615,7 @@ button {
 }
 
 .space-card {
-  padding: 15px;
+  padding: 10px;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
@@ -650,13 +632,29 @@ button {
 
 .space-card strong {
   display: block;
-  margin: 8px 0;
-  font-size: 18px;
+  margin: 7px 0;
+  font-size: 16px;
+}
+
+.space-card-media {
+  width: 100%;
+  height: 84px;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.space-card-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
 
 .space-card p {
-  margin: 0 0 12px;
+  min-height: 50px;
+  margin: 0 0 10px;
   color: var(--muted);
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -670,10 +668,10 @@ button {
 .space-scene,
 .product-meta span {
   border-radius: 6px;
-  padding: 6px 9px;
+  padding: 6px 8px;
   background: #f2ede6;
   color: #6d5a4a;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
 }
 
