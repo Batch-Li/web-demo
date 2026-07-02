@@ -65,6 +65,18 @@ const spacePreviewImages = {
   corridor: "/assets/community/corridor-cable.png"
 };
 
+const homePreviewImages = {
+  bathroom: "/assets/community/threshold-question.png",
+  bedroom: "/assets/community/bedroom-night-light.png",
+  corridor: "/assets/community/corridor-cable.png"
+};
+
+const homeCaptureRoutes = {
+  bathroom: ["空间全景", "地面区域", "坐便区两侧", "入口边缘"],
+  bedroom: ["空间全景", "床边区域", "夜间动线", "家具边角"],
+  corridor: ["空间全景", "通道区域", "入口边缘", "地面杂物"]
+};
+
 const defaultElderProfile = {
   age: "78",
   living: "独居",
@@ -273,44 +285,62 @@ function BottomNav({ activeEntrance, switchEntrance }) {
   );
 }
 
-function HomeScreen({ setStep }) {
+function HomeScreen({ currentSpace, tasks, setStep }) {
+  const previewImage = homePreviewImages[currentSpace.id] ?? homePreviewImages.bathroom;
+  const captureRoute = homeCaptureRoutes[currentSpace.id] ?? tasks.slice(0, 4).map((task) => task.title.replace("拍摄", ""));
+
   return (
-    <section className="screen">
-      <div className="hero-band">
-        <div className="hero-copy">
-          <span className="eyebrow">居家适老风险扫描</span>
-          <h2>
-            先扫出 <mark>缺少扶手</mark>
-            <br />
-            再生成改造方案
-          </h2>
-          <p>拍关键位置，系统直接给出风险、方案清单和预算预览。</p>
-          <div className="risk-shortcuts" aria-label="高频风险快捷入口">
-            <button onClick={() => setStep(3)}>缺少扶手</button>
-            <button onClick={() => setStep(3)}>门槛高差</button>
-            <button onClick={() => setStep(3)}>湿区防滑</button>
-          </div>
-        </div>
-        <figure className="home-cover">
-          <img src="/assets/community/bathroom-after.png" alt="卫生间完成扶手和防滑改造后的效果" />
+    <section className="screen scan-home-screen">
+      <div className="scan-home-hero">
+        <figure className="scan-home-preview">
+          <img src={previewImage} alt={`${currentSpace.name}待扫描空间预览`} />
+          <div className="scan-home-focus" aria-hidden="true" />
+          <figcaption>
+            <span>准备扫描</span>
+            <strong>{currentSpace.name}</strong>
+          </figcaption>
         </figure>
+        <div className="scan-home-copy">
+          <span className="eyebrow">空间扫描</span>
+          <h2>
+            对准空间
+            <br />
+            开始评估
+          </h2>
+          <p>按引导拍摄关键视角，系统完成识别、报告和方案预览。</p>
+        </div>
       </div>
 
       <div className="home-status-strip">
         <div>
-          <strong>预计 4 分钟</strong>
-          <span>完成一次卫生间风险扫描</span>
+          <strong>{currentSpace.time}</strong>
+          <span>完成一次空间评估</span>
         </div>
         <div>
-          <strong>3 类风险</strong>
-          <span>扶手、湿滑、门槛</span>
+          <strong>{tasks.length} 个视角</strong>
+          <span>按顺序采集更稳定</span>
         </div>
       </div>
 
+      <section className="capture-route">
+        <header>
+          <strong>本次采集顺序</strong>
+          <span>扫描前只做采集引导</span>
+        </header>
+        <div>
+          {captureRoute.map((label, index) => (
+            <button key={label} onClick={() => setStep(2)}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{label}</strong>
+            </button>
+          ))}
+        </div>
+      </section>
+
       <button className="continue-plan" onClick={() => setStep(5)}>
         <div>
-          <span>我的方案单</span>
-          <strong>2 项已加入 · 210-540 元</strong>
+          <span>最近方案预览</span>
+          <strong>2 项待确认 · 210-540 元</strong>
         </div>
         <ArrowRight size={18} />
       </button>

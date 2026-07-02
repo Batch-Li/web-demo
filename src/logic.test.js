@@ -220,6 +220,26 @@ describe("demo logic", () => {
     expect(styles).toContain(".preview-summary");
   });
 
+  it("keeps the scan home neutral before recognition starts", () => {
+    const appSource = readFileSync(appPath, "utf8");
+    const styles = readFileSync(stylesPath, "utf8");
+    const homeSource = appSource.slice(
+      appSource.indexOf("function HomeScreen"),
+      appSource.indexOf("function SpaceScreen")
+    );
+
+    expect(homeSource).toContain("scan-home-preview");
+    expect(homeSource).toContain("capture-route");
+    expect(homeSource).toContain("扫描前只做采集引导");
+    expect(appSource).toContain("homePreviewImages");
+    expect(homeSource).not.toContain("缺少扶手");
+    expect(homeSource).not.toContain("门槛高差");
+    expect(homeSource).not.toContain("高差位置");
+    expect(homeSource).not.toContain("湿区防滑");
+    expect(homeSource).not.toContain("risk-shortcuts");
+    expect(getCssRule(styles, ".evidence-panel")).toContain("display: none");
+  });
+
   it("keeps user-facing scan and profile flows free of demo implementation wording", () => {
     const appSource = readFileSync(appPath, "utf8");
 
