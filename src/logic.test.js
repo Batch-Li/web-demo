@@ -240,7 +240,8 @@ describe("demo logic", () => {
     );
 
     expect(homeSource).toContain("scan-home-overview");
-    expect(homeSource).toContain("capture-route");
+    expect(homeSource).toContain("scan-launch-button");
+    expect(homeSource).not.toContain("capture-route");
     expect(homeSource).toContain("开始空间");
     expect(homeSource).toContain("支持多个家庭空间");
     expect(homeSource).not.toContain("currentSpace");
@@ -260,7 +261,30 @@ describe("demo logic", () => {
     expect(homeSource).not.toContain("高差位置");
     expect(homeSource).not.toContain("湿区防滑");
     expect(homeSource).not.toContain("risk-shortcuts");
+    expect(homeSource).not.toContain("按 App");
+    expect(homeSource).not.toContain("评估路径");
     expect(getCssRule(styles, ".evidence-panel")).toContain("display: none");
+  });
+
+  it("does not preselect a room before the user chooses one", () => {
+    const appSource = readFileSync(appPath, "utf8");
+
+    expect(appSource).toContain('const [spaceId, setSpaceId] = useState("");');
+    expect(appSource).toContain("selectedSpaceId: spaceId");
+    expect(appSource).toContain("请选择一个空间");
+    expect(appSource).toContain('className={`space-card ${space.id === selectedSpaceId ? "selected" : ""}`');
+    expect(appSource).toContain("disabled={!hasSelectedSpace}");
+    expect(appSource).not.toContain('const [spaceId, setSpaceId] = useState("bathroom")');
+  });
+
+  it("keeps mall recommendations tied to the selected report", () => {
+    const appSource = readFileSync(appPath, "utf8");
+    const styles = readFileSync(stylesPath, "utf8");
+
+    expect(appSource).toContain("setPlanItemIds(nextMatchedProducts.slice(0, 2)");
+    expect(appSource).toContain("Number(recommendedIds.has(b.id)) - Number(recommendedIds.has(a.id))");
+    expect(appSource).toContain('style={{ "--image": `url(${scanPreviewImages[currentSpace.id]})` }}');
+    expect(styles).toContain('var(--image, url("/assets/community/bathroom-after.png"))');
   });
 
   it("shows product and case images without cropping important content", () => {
@@ -299,6 +323,7 @@ describe("demo logic", () => {
     });
 
     expect(appSource).toContain("defaultElderProfile");
+    expect(appSource).toContain("待确认");
     expect(appSource).toContain("本次评估对象");
     expect(appSource).toContain("确认/修改");
     expect(appSource).toContain("保存老人情况");
@@ -352,7 +377,8 @@ describe("demo logic", () => {
     const report = buildReport({ space, risks, products: matched });
 
     expect(report.title).toContain("过道/玄关");
-    expect(report.summary).toContain("人因规则");
+    expect(report.summary).toContain("居家安全评估标准");
+    expect(report.summary).not.toContain("人因规则");
     expect(report.budget.max).toBeGreaterThan(report.budget.min);
   });
 

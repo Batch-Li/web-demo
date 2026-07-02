@@ -73,7 +73,7 @@ export function buildReport({ space, risks, products }) {
     highPriority,
     budget,
     reviewItems,
-    summary: `${space.name}共识别 ${risks.length} 类高频适老风险，其中 ${highPriority.length} 项建议优先处理。系统依据空间风险、老人行为场景和人因规则生成建议，涉及施工安全的项目进入人工校核。`
+    summary: `${space.name}共识别 ${risks.length} 类高频适老风险，其中 ${highPriority.length} 项建议优先处理。系统依据空间风险、老人行为场景和居家安全评估标准生成建议，涉及施工安全的项目进入人工校核。`
   };
 }
 

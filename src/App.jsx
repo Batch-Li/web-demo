@@ -69,12 +69,12 @@ const scanPreviewImages = {
 };
 
 const defaultElderProfile = {
-  age: "78",
-  living: "独居",
-  mobility: "起身较慢",
-  night: "起夜频繁",
-  focus: "卫生间防跌倒",
-  notes: "轻度膝关节不适"
+  age: "待确认",
+  living: "待确认",
+  mobility: "待确认",
+  night: "待确认",
+  focus: "防跌倒与通行安全",
+  notes: "信息待补充"
 };
 
 function getProfileInsight(profile, space) {
@@ -102,15 +102,16 @@ function getProfileInsight(profile, space) {
 function App() {
   const [activeEntrance, setActiveEntrance] = useState("scan");
   const [step, setStep] = useState(0);
-  const [spaceId, setSpaceId] = useState("bathroom");
-  const [completedTasks, setCompletedTasks] = useState(["bathroom_overview"]);
+  const [spaceId, setSpaceId] = useState("");
+  const [completedTasks, setCompletedTasks] = useState([]);
   const [elderProfile, setElderProfile] = useState(defaultElderProfile);
-  const [planItemIds, setPlanItemIds] = useState(["grab_bar_l", "threshold_ramp"]);
+  const [planItemIds, setPlanItemIds] = useState([]);
   const [communityFeed, setCommunityFeed] = useState(communityPosts);
 
   const currentSpace = getSpaceById(spaces, spaceId);
-  const tasks = scanTasks[spaceId];
-  const risks = useMemo(() => getRisksBySpace(riskRules, spaceId), [spaceId]);
+  const activeSpaceId = currentSpace.id;
+  const tasks = scanTasks[activeSpaceId];
+  const risks = useMemo(() => getRisksBySpace(riskRules, activeSpaceId), [activeSpaceId]);
   const matchedProducts = useMemo(() => matchProductsForRisks(risks, products), [risks]);
   const report = useMemo(
     () => buildReport({ space: currentSpace, risks, products: matchedProducts }),
@@ -120,8 +121,12 @@ function App() {
   const feedbackDelta = getFeedbackDelta(sampleCase);
 
   const resetForSpace = (nextSpaceId) => {
+    const nextRisks = getRisksBySpace(riskRules, nextSpaceId);
+    const nextMatchedProducts = matchProductsForRisks(nextRisks, products);
+
     setSpaceId(nextSpaceId);
     setCompletedTasks([scanTasks[nextSpaceId][0].id]);
+    setPlanItemIds(nextMatchedProducts.slice(0, 2).map((product) => product.id));
   };
 
   const goNext = () => setStep((value) => Math.min(scanSteps.length - 1, value + 1));
@@ -159,6 +164,7 @@ function App() {
     setPlanItemIds,
     communityFeed,
     setCommunityFeed,
+    selectedSpaceId: spaceId,
     resetForSpace,
     goNext,
     setStep,
@@ -181,11 +187,11 @@ function App() {
           <BottomNav activeEntrance={activeEntrance} switchEntrance={switchEntrance} />
         </PhoneFrame>
 
-        <aside className="evidence-panel" aria-label="服务闭环说明">
-          <div className="panel-kicker">服务闭环说明</div>
-          <h1>智绘适老 H5 原型</h1>
+        <aside className="evidence-panel" aria-label="产品评估体系">
+          <div className="panel-kicker">产品评估体系</div>
+          <h1>智绘适老</h1>
           <p>
-            产品主入口调整为扫描评估、方案商城、效果交流社区三部分。扫描形成风险报告，商城按风险项匹配方案，社区承载用户分享、提问和服务评价。
+            扫描形成风险报告，商城按风险项匹配方案，社区承载用户分享、提问和服务评价。
           </p>
           <div className="architecture">
             {["拍照采集", "识别风险", "生成报告", "匹配方案", "预览效果", "社区反馈"].map((item, index) => (
@@ -214,7 +220,7 @@ function PhoneFrame({ activeEntrance, canGoBack, children, goBack }) {
   const activeMeta = coreEntrances.find((entry) => entry.id === activeEntrance) ?? coreEntrances[0];
 
   return (
-    <section className="phone-frame" aria-label="智绘适老手机端原型">
+    <section className="phone-frame" aria-label="智绘适老手机端">
       <div className="phone-status">
         <span>09:41</span>
         <span>5G</span>
@@ -237,19 +243,25 @@ function PhoneFrame({ activeEntrance, canGoBack, children, goBack }) {
 function ProgressRail({ step, setStep }) {
   return (
     <nav className="progress-rail" aria-label="评估流程">
-      {scanSteps.map((item, index) => {
-        const Icon = item.icon;
-        return (
-          <button
-            key={item.key}
-            className={index === step ? "active" : index < step ? "done" : ""}
-            onClick={() => setStep(index)}
-          >
-            <Icon size={15} />
-            <span>{item.label}</span>
-          </button>
-        );
-      })}
+      <div className="progress-context">
+        <span>评估进度</span>
+        <strong>{step + 1}/{scanSteps.length}</strong>
+      </div>
+      <div className="progress-track">
+        {scanSteps.map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.key}
+              className={index === step ? "active" : index < step ? "done" : ""}
+              onClick={() => setStep(index)}
+            >
+              <Icon size={15} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }
@@ -287,55 +299,34 @@ function HomeScreen({ setStep }) {
             <br />
             扫描评估
           </h2>
-          <p>进入后确认评估空间，再按引导拍摄关键视角，系统完成识别、报告和方案预览。</p>
+          <p>完成一次居家安全评估，输出风险报告和方案清单。</p>
         </div>
-        <div className="scan-home-overview" aria-label="扫描评估概览">
-          <div>
-            <Layers3 size={17} />
-            <span>覆盖 {spaces.length} 类家庭空间</span>
-          </div>
-          <div>
-            <Camera size={17} />
-            <span>按空间生成采集引导</span>
-          </div>
-          <div>
-            <ClipboardList size={17} />
-            <span>报告、方案、预览自动串联</span>
-          </div>
-        </div>
+        <button className="scan-launch-button" onClick={() => setStep(1)} aria-label="开始扫描评估">
+          <span className="scan-launch-ring">
+            <Camera size={34} />
+          </span>
+          <strong>开始扫描</strong>
+          <span>先选择评估空间</span>
+        </button>
       </div>
 
-      <div className="home-status-strip">
+      <div className="scan-home-overview" aria-label="扫描评估概览">
         <div>
+          <Layers3 size={17} />
           <strong>{spaces.length} 类空间</strong>
           <span>支持多个家庭空间</span>
         </div>
         <div>
+          <Camera size={17} />
           <strong>约 4-6 分钟</strong>
           <span>完成一次空间评估</span>
         </div>
-      </div>
-
-      <section className="capture-route">
-        <header>
-          <strong>开始评估流程</strong>
-          <span>先选空间再采集</span>
-        </header>
         <div>
-          <button onClick={() => setStep(1)}>
-            <span>01</span>
-            <strong>选择评估空间</strong>
-          </button>
-          <button onClick={() => setStep(1)}>
-            <span>02</span>
-            <strong>确认老人情况</strong>
-          </button>
-          <button onClick={() => setStep(1)}>
-            <span>03</span>
-            <strong>进入引导采集</strong>
-          </button>
+          <ClipboardList size={17} />
+          <strong>闭环方案</strong>
+          <span>报告、方案、预览串联</span>
         </div>
-      </section>
+      </div>
 
       <button className="continue-plan" onClick={() => setStep(1)}>
         <div>
@@ -348,15 +339,24 @@ function HomeScreen({ setStep }) {
   );
 }
 
-function SpaceScreen({ currentSpace, elderProfile, setElderProfile, resetForSpace, goNext }) {
+function SpaceScreen({ currentSpace, selectedSpaceId, elderProfile, setElderProfile, resetForSpace, goNext }) {
+  const hasSelectedSpace = Boolean(selectedSpaceId);
+
   return (
     <section className="screen">
-      <SectionTitle eyebrow="采集前确认" title="确认评估对象和空间" text="系统会结合老人行动能力、居住情况和夜间习惯，调整风险提示重点。" />
+      <SectionTitle eyebrow="本次评估" title="先确认对象，再选择空间" text="老人情况会影响风险权重；空间选择决定后续采集视角。" />
       <ProfilePanel profile={elderProfile} setProfile={setElderProfile} />
+      <div className="space-selector-head">
+        <div>
+          <strong>选择评估空间</strong>
+          <span>{hasSelectedSpace ? `当前：${currentSpace.name}` : "请选择一个空间"}</span>
+        </div>
+        <small>{spaces.length} 类可选</small>
+      </div>
       <div className="space-grid">
         {spaces.map((space) => (
           <button
-            className={`space-card ${space.id === currentSpace.id ? "selected" : ""}`}
+            className={`space-card ${space.id === selectedSpaceId ? "selected" : ""}`}
             key={space.id}
             onClick={() => resetForSpace(space.id)}
             style={{ "--image": `url(${scanPreviewImages[space.id]})` }}
@@ -374,8 +374,8 @@ function SpaceScreen({ currentSpace, elderProfile, setElderProfile, resetForSpac
           </button>
         ))}
       </div>
-      <button className="primary-button full" onClick={goNext}>
-        进入引导采集
+      <button className="primary-button full" onClick={goNext} disabled={!hasSelectedSpace}>
+        {hasSelectedSpace ? "进入引导采集" : "选择空间后进入采集"}
         <Camera size={18} />
       </button>
     </section>
@@ -396,14 +396,17 @@ function ScanScreen({
   const progress = Math.round((completedTasks.length / tasks.length) * 100);
   const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
   const captureComplete = completedTasks.length >= tasks.length;
+  const currentTask = tasks.find((task) => !completedTasks.includes(task.id)) ?? tasks[tasks.length - 1];
 
   return (
     <section className="screen scan-screen">
       <div className="scan-workspace">
-        <div className="scan-copy">
-          <span className="eyebrow">引导采集</span>
-          <h2>{currentSpace.name}风险点采集</h2>
-          <p>按顺序补齐关键视角，系统自动完成画面质检并整理风险线索。</p>
+        <div className="scan-session-bar">
+          <div>
+            <span>正在采集</span>
+            <strong>{currentSpace.name}</strong>
+          </div>
+          <em>{completedTasks.length}/{tasks.length}</em>
         </div>
 
         <figure className="capture-viewfinder" style={{ "--image": `url(${previewImage})` }}>
@@ -425,8 +428,26 @@ function ScanScreen({
         <div className="progress-bar">
           <span style={{ width: `${progress}%` }} />
         </div>
+        <div className="current-capture-card">
+          <div>
+            <span>当前目标</span>
+            <strong>{currentTask.title}</strong>
+            <small>{currentTask.target}</small>
+          </div>
+          <button onClick={() => completeTask(currentTask.id)} disabled={captureComplete}>
+            {captureComplete ? <CheckCircle2 size={18} /> : <Camera size={18} />}
+            {captureComplete ? "已完成" : "拍摄"}
+          </button>
+        </div>
       </div>
 
+      <header className="task-list-heading">
+        <div>
+          <strong>{currentSpace.name}风险点采集</strong>
+          <span>按顺序补齐关键视角</span>
+        </div>
+        <small>{progress}%</small>
+      </header>
       <div className="task-list capture-task-list">
         {tasks.map((task, index) => {
           const done = completedTasks.includes(task.id);
@@ -472,32 +493,35 @@ function ReportScreen({ currentSpace, elderProfile, risks, report, goNext, setSt
 
   return (
     <section className="screen">
-      <SectionTitle eyebrow="风险报告" title={report.title} text="系统根据空间照片、老人情况和适老安全规则，生成初步风险提示。涉及施工、承重和高差处理的内容需人工确认。" />
-
-      <div className="report-overview">
-        <strong>{currentSpace.name}风险等级：{report.level}</strong>
-        <span>发现 {risks.length} 处风险，{highRiskCount} 处建议优先处理</span>
-      </div>
-
       <div className={`score-card level-${report.level}`}>
         <div>
-          <span>综合风险等级</span>
+          <span>风险报告</span>
           <strong>{report.level}</strong>
+          <small>{currentSpace.name} · {risks.length} 处风险</small>
         </div>
         <div className="score-ring">
           <span>{report.score}</span>
         </div>
       </div>
 
+      <div className="report-overview">
+        <strong>{report.title}</strong>
+        <span>发现 {risks.length} 处风险，{highRiskCount} 处建议优先处理</span>
+      </div>
+
       <p className="report-summary">{report.summary}</p>
 
       <section className="profile-insight">
         <span>结合老人情况的重点提示</span>
-        <ul>
-          {profileTips.map((tip) => (
-            <li key={tip}>{tip}</li>
-          ))}
-        </ul>
+        {profileTips.length > 0 ? (
+          <ul>
+            {profileTips.map((tip) => (
+              <li key={tip}>{tip}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>补充老人情况后，将进一步调整风险提示重点。</p>
+        )}
       </section>
 
       <div className="risk-list">
@@ -561,7 +585,7 @@ function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemI
 
   return (
     <section className="screen">
-      <SectionTitle eyebrow="方案匹配" title="风险驱动产品/方案匹配" text="系统根据风险项、安装条件和复核要求，优先推荐适合本次评估的方案和服务。" />
+      <SectionTitle eyebrow="方案匹配" title="生成本次方案清单" text="系统按风险项推荐产品和服务，家属可先调整清单再看效果预览。" />
 
       <div className="budget-card">
         <div>
@@ -634,7 +658,7 @@ function MallScreen({
       `${product.name}${product.category}${product.condition}`.toLowerCase().includes(normalizedQuery);
 
     return matchesCategory && matchesQuery;
-  });
+  }).sort((a, b) => Number(recommendedIds.has(b.id)) - Number(recommendedIds.has(a.id)));
   const selectedProducts = products.filter((product) => planItemIds.includes(product.id));
   const selectedBudget = selectedProducts.reduce(
     (range, product) => ({
@@ -651,11 +675,11 @@ function MallScreen({
 
   return (
     <section className="screen marketplace-screen">
-      <div className="mall-topbar">
+      <div className="mall-topbar" style={{ "--image": `url(${scanPreviewImages[currentSpace.id]})` }}>
         <div>
           <span className="eyebrow">方案商城</span>
-          <h2>{currentSpace.name}适老方案货架</h2>
-          <p>根据本次风险报告优先展示扶手、防滑、照明和人工校核服务。</p>
+          <h2>{currentSpace.name}方案推荐</h2>
+          <p>根据本次风险报告优先展示匹配商品和服务。</p>
         </div>
         <div className="mall-risk-chip">
           <span>风险项</span>
@@ -765,7 +789,7 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
 
   return (
     <section className="screen plan-preview-screen">
-      <SectionTitle eyebrow="方案预览" title="本次改造方案清单" text="把风险项、方案项和预估改善效果放在同一页，便于家属确认下一步。" />
+      <SectionTitle eyebrow="效果预览" title="确认本次改造闭环" text="把风险分、方案清单和参考效果放在同一页，便于家属继续下单或调整。" />
 
       <div className="preview-summary">
         <div>
@@ -790,7 +814,7 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
         </div>
         <div>
           <span>预计改善</span>
-          <strong>高风险项 {report.highPriority.length} 项降至 0 项</strong>
+          <strong>高风险项预计减少，需复扫或人工复核确认</strong>
         </div>
       </div>
 
@@ -1014,6 +1038,10 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
 
 function ProfilePanel({ profile, setProfile }) {
   const [editing, setEditing] = useState(false);
+  const profileReady = [profile.age, profile.living, profile.mobility, profile.night].some((value) => value !== "待确认");
+  const profileSummary = profileReady
+    ? `${profile.age}岁｜${profile.living}｜${profile.night}｜${profile.mobility}`
+    : "请确认老人情况";
   const updateProfile = (field, value) => {
     setProfile((current) => ({ ...current, [field]: value }));
   };
@@ -1023,14 +1051,16 @@ function ProfilePanel({ profile, setProfile }) {
       <header className="profile-heading">
         <div>
           <span>本次评估对象</span>
-          <strong>{profile.age}岁｜{profile.living}｜{profile.night}｜{profile.mobility}</strong>
+          <strong>{profileSummary}</strong>
         </div>
         <button type="button" onClick={() => setEditing((value) => !value)}>
           <Edit3 size={15} />
           {editing ? "收起" : "确认/修改"}
         </button>
       </header>
-      <p>{profile.notes}。重点关注：{profile.focus}。</p>
+      <p>
+        {profileReady ? `${profile.notes}。重点关注：${profile.focus}。` : "填写后将用于调整风险提示重点。"}
+      </p>
 
       {editing && (
         <div className="profile-form">
@@ -1041,6 +1071,7 @@ function ProfilePanel({ profile, setProfile }) {
           <label>
             <span>居住情况</span>
             <select value={profile.living} onChange={(event) => updateProfile("living", event.target.value)}>
+              <option>待确认</option>
               <option>独居</option>
               <option>与配偶同住</option>
               <option>与子女同住</option>
@@ -1050,6 +1081,7 @@ function ProfilePanel({ profile, setProfile }) {
           <label>
             <span>行动情况</span>
             <select value={profile.mobility} onChange={(event) => updateProfile("mobility", event.target.value)}>
+              <option>待确认</option>
               <option>正常行走</option>
               <option>起身较慢</option>
               <option>使用手杖</option>
@@ -1060,6 +1092,7 @@ function ProfilePanel({ profile, setProfile }) {
           <label>
             <span>夜间情况</span>
             <select value={profile.night} onChange={(event) => updateProfile("night", event.target.value)}>
+              <option>待确认</option>
               <option>很少起夜</option>
               <option>偶尔起夜</option>
               <option>起夜频繁</option>
@@ -1069,6 +1102,7 @@ function ProfilePanel({ profile, setProfile }) {
           <label>
             <span>重点关注</span>
             <select value={profile.focus} onChange={(event) => updateProfile("focus", event.target.value)}>
+              <option>防跌倒与通行安全</option>
               <option>卫生间防跌倒</option>
               <option>起夜照明</option>
               <option>门槛高差</option>
