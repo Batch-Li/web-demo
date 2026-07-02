@@ -133,11 +133,15 @@ button {
 }
 
 .progress-rail {
+  position: relative;
+  z-index: 3;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 0;
   padding: 10px 14px 7px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 6px solid #f1e4d6;
+  background: #fffaf2;
+  box-shadow: 0 8px 18px rgba(102, 73, 49, 0.08);
 }
 
 .progress-rail button {
@@ -172,6 +176,9 @@ button {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 18px 98px;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 242, 0.96), rgba(248, 239, 229, 0.76)),
+    var(--surface);
   scrollbar-width: thin;
 }
 
@@ -195,13 +202,14 @@ button {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin: 8px 0 10px;
+  margin: 10px 0 16px;
 }
 
 .home-status-strip div {
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .home-status-strip strong,
@@ -223,26 +231,31 @@ button {
   width: 100%;
   min-height: 62px;
   margin-bottom: 10px;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   color: var(--ink);
-  background: transparent;
+  background: #fffdf8;
+  padding: 0 12px;
   text-align: left;
   cursor: pointer;
 }
 
 .scan-home-screen {
-  padding-top: 0;
+  padding-top: 12px;
 }
 
 .scan-home-hero {
-  margin: 0 -18px 16px;
+  margin: 0 0 20px;
+  overflow: hidden;
+  border: 1px solid rgba(42, 36, 31, 0.12);
+  border-radius: 8px;
   color: #fffaf4;
   background: #2a241f;
+  box-shadow: 0 12px 24px rgba(71, 48, 30, 0.12);
 }
 
 .scan-home-preview {
@@ -338,8 +351,11 @@ button {
 }
 
 .capture-route {
-  margin: 12px 0 14px;
-  border-top: 1px solid var(--line);
+  margin: 14px 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
+  overflow: hidden;
 }
 
 .capture-route header {
@@ -347,8 +363,9 @@ button {
   align-items: end;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 0;
+  padding: 12px;
   border-bottom: 1px solid var(--line);
+  background: #fff8ef;
 }
 
 .capture-route header strong {
@@ -372,7 +389,7 @@ button {
   align-items: center;
   gap: 10px;
   min-height: 48px;
-  padding: 8px 0;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   background: transparent;
@@ -473,7 +490,12 @@ button {
 }
 
 .section-title {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--primary);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .section-title span {
@@ -499,8 +521,10 @@ button {
 .risk-list,
 .product-list {
   display: grid;
-  gap: 0;
-  border-top: 1px solid var(--line);
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 6px solid rgba(241, 228, 214, 0.86);
 }
 
 .space-card,
@@ -511,21 +535,21 @@ button {
 .budget-card,
 .product-card,
 .case-card {
-  border: 0;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
-  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .space-card {
-  padding: 16px 0;
+  padding: 15px;
   color: var(--ink);
   text-align: left;
   cursor: pointer;
 }
 
 .space-card.selected {
-  border-bottom-color: var(--primary);
+  border-color: var(--primary);
+  background: #fff8ef;
 }
 
 .space-card.selected strong {
@@ -568,8 +592,7 @@ button {
 
 .profile-panel {
   margin: 0 0 14px;
-  padding: 15px 0 16px 12px;
-  border-left: 4px solid var(--primary);
+  padding: 15px;
 }
 
 .profile-panel span,
@@ -664,8 +687,10 @@ button {
 }
 
 .scan-workspace {
-  margin: 0 -18px 14px;
+  margin: 0 0 16px;
   padding: 18px;
+  border-radius: 8px;
+  overflow: hidden;
   color: #fffaf4;
   background:
     linear-gradient(180deg, rgba(36, 31, 27, 0.92), rgba(71, 112, 90, 0.82)),
@@ -833,7 +858,7 @@ button {
   display: grid;
   grid-template-columns: 34px 1fr auto;
   gap: 12px;
-  padding: 14px 0;
+  padding: 14px;
   align-items: center;
 }
 
@@ -885,13 +910,15 @@ button {
 }
 
 .capture-task-list {
-  border-top: 1px solid var(--line);
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 6px solid rgba(241, 228, 214, 0.86);
 }
 
 .capture-task-list .task-card {
   grid-template-columns: 42px 1fr;
   align-items: start;
-  padding: 16px 0;
+  padding: 16px;
 }
 
 .capture-task-list .task-index {
@@ -1001,9 +1028,10 @@ button {
 
 .report-summary {
   margin: 14px 0;
-  padding: 12px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
   color: #62452e;
   line-height: 1.7;
 }
@@ -1012,9 +1040,10 @@ button {
   display: grid;
   gap: 6px;
   margin: 0 0 12px;
-  padding: 12px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .report-overview strong {
@@ -1029,7 +1058,7 @@ button {
 }
 
 .risk-card {
-  padding: 15px 0;
+  padding: 15px;
 }
 
 .risk-card header,
@@ -1144,9 +1173,10 @@ button {
 
 .profile-insight {
   margin: 14px 0;
-  padding: 13px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .profile-insight span {
@@ -1165,10 +1195,10 @@ button {
 }
 
 .budget-card {
-  padding: 0 0 16px;
+  padding: 15px;
   display: grid;
   gap: 8px;
-  margin-bottom: 0;
+  margin-bottom: 12px;
 }
 
 .budget-card strong {
@@ -1183,7 +1213,7 @@ button {
 }
 
 .product-card {
-  padding: 15px 0;
+  padding: 15px;
 }
 
 .plan-product-thumb {
@@ -1208,7 +1238,7 @@ button {
 }
 
 .case-card {
-  padding: 0 0 18px;
+  padding: 15px;
 }
 
 .case-card h3 {
@@ -1584,7 +1614,7 @@ blockquote {
   justify-content: space-between;
   align-items: end;
   gap: 10px;
-  margin: 8px 0 12px;
+  margin: 14px 0 12px;
 }
 
 .shelf-heading strong {
@@ -1608,14 +1638,17 @@ blockquote {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   column-gap: 13px;
   row-gap: 18px;
+  padding-top: 14px;
+  border-top: 6px solid rgba(241, 228, 214, 0.86);
 }
 
 .commerce-tile {
   min-width: 0;
   overflow: hidden;
-  padding-bottom: 14px;
+  padding: 10px;
+  border-radius: 8px;
   border-bottom: 1px solid var(--line);
-  background: transparent;
+  background: #fffdf8;
 }
 
 .commerce-tile.recommended {
@@ -1776,9 +1809,10 @@ blockquote {
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
-  padding: 18px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  padding: 18px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .preview-summary div {
@@ -1806,16 +1840,18 @@ blockquote {
 
 .preview-meta {
   display: grid;
-  gap: 0;
+  gap: 10px;
   margin-bottom: 12px;
-  border-top: 1px solid var(--line);
+  border-top: 0;
 }
 
 .preview-meta div {
   display: grid;
   gap: 4px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .preview-meta span {
@@ -1832,8 +1868,10 @@ blockquote {
 
 .preview-plan-list {
   display: grid;
-  gap: 0;
-  border-top: 1px solid var(--line);
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 6px solid rgba(241, 228, 214, 0.86);
 }
 
 .preview-plan-list article {
@@ -1841,8 +1879,10 @@ blockquote {
   grid-template-columns: 58px 1fr 22px;
   gap: 12px;
   align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .preview-plan-list img {
@@ -1915,11 +1955,11 @@ blockquote {
 .composer-card {
   display: grid;
   gap: 10px;
-  margin: 0 0 12px;
-  padding: 12px 0 14px;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  background: transparent;
+  margin: 12px 0 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .composer-card input,
@@ -1953,13 +1993,17 @@ blockquote {
 
 .feed-list {
   display: grid;
-  gap: 0;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 6px solid rgba(241, 228, 214, 0.86);
 }
 
 .feed-post {
-  padding: 16px 0 15px;
-  border-bottom: 1px solid var(--line);
-  background: transparent;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf8;
 }
 
 .feed-author {
@@ -2032,9 +2076,10 @@ blockquote {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff8ef;
   color: var(--primary-dark);
   font-weight: 900;
 }
