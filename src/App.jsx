@@ -23,7 +23,7 @@ import {
   Store,
   Target,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   communityPosts,
   communityTopics,
@@ -49,6 +49,7 @@ const scanSteps = [
   { key: "home", label: "入口", icon: Home },
   { key: "space", label: "空间", icon: Layers3 },
   { key: "scan", label: "采集", icon: Camera },
+  { key: "analysis", label: "分析", icon: Cpu },
   { key: "report", label: "评估", icon: BarChart3 },
   { key: "match", label: "匹配", icon: ClipboardList },
   { key: "preview", label: "预览", icon: CheckCircle2 }
@@ -110,6 +111,7 @@ function App() {
   const [elderProfile, setElderProfile] = useState(defaultElderProfile);
   const [planItemIds, setPlanItemIds] = useState([]);
   const [communityFeed, setCommunityFeed] = useState(communityPosts);
+  const [maxUnlockedStep, setMaxUnlockedStep] = useState(0);
 
   const currentSpace = getSpaceById(spaces, spaceId);
   const activeSpaceId = currentSpace.id;
@@ -128,11 +130,26 @@ function App() {
     const nextMatchedProducts = matchProductsForRisks(nextRisks, products);
 
     setSpaceId(nextSpaceId);
-    setCompletedTasks([scanTasks[nextSpaceId][0].id]);
+    setCompletedTasks([]);
     setPlanItemIds(nextMatchedProducts.slice(0, 2).map((product) => product.id));
+    setMaxUnlockedStep(2);
   };
 
-  const goNext = () => setStep((value) => Math.min(scanSteps.length - 1, value + 1));
+  const moveToStep = (nextStep) => {
+    const boundedStep = Math.min(scanSteps.length - 1, Math.max(0, nextStep));
+    setMaxUnlockedStep((current) => Math.max(current, boundedStep));
+    setStep(boundedStep);
+  };
+  const goToUnlockedStep = (nextStep) => {
+    setStep(Math.min(nextStep, maxUnlockedStep));
+  };
+  const goNext = () => {
+    setStep((value) => {
+      const nextStep = Math.min(scanSteps.length - 1, value + 1);
+      setMaxUnlockedStep((current) => Math.max(current, nextStep));
+      return nextStep;
+    });
+  };
   const goBack = () => {
     if (activeEntrance !== "scan") {
       setActiveEntrance("scan");
@@ -143,7 +160,7 @@ function App() {
   const switchEntrance = (entranceId) => {
     if (entranceId === "scan") {
       setActiveEntrance("scan");
-      setStep(1);
+      moveToStep(1);
       return;
     }
 
@@ -170,7 +187,7 @@ function App() {
     selectedSpaceId: spaceId,
     resetForSpace,
     goNext,
-    setStep,
+    setStep: moveToStep,
     setActiveEntrance
   };
 
@@ -178,13 +195,14 @@ function App() {
     <main className="app-shell">
       <section className="stage">
         <PhoneFrame canGoBack={canGoBack} activeEntrance={activeEntrance} goBack={goBack}>
-          {activeEntrance === "scan" && <ProgressRail step={step} setStep={setStep} />}
+          {activeEntrance === "scan" && <ProgressRail step={step} maxUnlockedStep={maxUnlockedStep} onStepSelect={goToUnlockedStep} />}
           {activeEntrance === "scan" && step === 0 && <HomeScreen {...screenProps} />}
           {activeEntrance === "scan" && step === 1 && <SpaceScreen {...screenProps} />}
           {activeEntrance === "scan" && step === 2 && <ScanScreen {...screenProps} />}
-          {activeEntrance === "scan" && step === 3 && <ReportScreen {...screenProps} />}
-          {activeEntrance === "scan" && step === 4 && <MatchScreen {...screenProps} />}
-          {activeEntrance === "scan" && step === 5 && <PlanPreviewScreen {...screenProps} />}
+          {activeEntrance === "scan" && step === 3 && <AnalysisScreen {...screenProps} />}
+          {activeEntrance === "scan" && step === 4 && <ReportScreen {...screenProps} />}
+          {activeEntrance === "scan" && step === 5 && <MatchScreen {...screenProps} />}
+          {activeEntrance === "scan" && step === 6 && <PlanPreviewScreen {...screenProps} />}
           {activeEntrance === "mall" && <MallScreen {...screenProps} />}
           {activeEntrance === "community" && <CommunityScreen {...screenProps} />}
           <BottomNav activeEntrance={activeEntrance} switchEntrance={switchEntrance} />
@@ -197,7 +215,7 @@ function App() {
             扫描形成风险报告，商城按风险项匹配方案，社区承载用户分享、提问和服务评价。
           </p>
           <div className="architecture">
-            {["拍照采集", "识别风险", "生成报告", "匹配方案", "预览效果", "社区反馈"].map((item, index) => (
+            {["拍照采集", "统一分析", "生成报告", "匹配方案", "预览效果", "社区反馈"].map((item, index) => (
               <div className="architecture-node" key={item}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 {item}
@@ -206,7 +224,7 @@ function App() {
           </div>
           <div className="proof-strip">
             <Metric value={report.score} label="当前风险分" />
-            <Metric value={`${risks.length}项`} label="识别风险" />
+            <Metric value={`${risks.length}项`} label="候选风险" />
             <Metric value={`${matchedProducts.length}个`} label="匹配方案" />
           </div>
           <div className="note-box">
@@ -243,7 +261,7 @@ function PhoneFrame({ activeEntrance, canGoBack, children, goBack }) {
   );
 }
 
-function ProgressRail({ step, setStep }) {
+function ProgressRail({ step, maxUnlockedStep, onStepSelect }) {
   return (
     <nav className="progress-rail" aria-label="评估流程">
       <div className="progress-context">
@@ -252,13 +270,15 @@ function ProgressRail({ step, setStep }) {
       </div>
       <div className="progress-track">
         {scanSteps.map((item, index) => {
+          const locked = index > maxUnlockedStep;
           return (
             <button
               key={item.key}
               className={index === step ? "active" : index < step ? "done" : ""}
-              aria-label={`切换到${item.label}`}
-              title={item.label}
-              onClick={() => setStep(index)}
+              aria-label={locked ? `${item.label}未解锁` : `切换到${item.label}`}
+              title={locked ? `${item.label}未解锁` : item.label}
+              disabled={locked}
+              onClick={() => onStepSelect(index)}
             >
               <span aria-hidden="true" />
             </button>
@@ -388,7 +408,6 @@ function SpaceScreen({ currentSpace, selectedSpaceId, elderProfile, setElderProf
 function ScanScreen({
   currentSpace,
   tasks,
-  risks,
   completedTasks,
   setCompletedTasks,
   goNext
@@ -408,29 +427,6 @@ function ScanScreen({
   const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
   const captureComplete = completedTasks.length >= tasks.length;
   const currentTask = tasks.find((task) => !completedTasks.includes(task.id)) ?? tasks[tasks.length - 1];
-  const recognizedRisks = risks.slice(0, Math.min(risks.length, Math.max(1, completedTasks.length)));
-  const aiEvents = [
-    {
-      label: "空间结构定位",
-      value: completedTasks.length ? `${currentSpace.name}边界已锁定` : "等待首个采集视角",
-      done: completedTasks.length >= 1
-    },
-    {
-      label: "风险证据提取",
-      value: recognizedRisks.length ? `AI已识别 ${recognizedRisks[0].name}` : "正在等待有效画面",
-      done: completedTasks.length >= 2
-    },
-    {
-      label: "适老评估准则",
-      value: completedTasks.length >= 3 ? "已同步通行、支撑、防滑条件" : "正在结合空间类型",
-      done: completedTasks.length >= 3
-    },
-    {
-      label: "方案匹配触发",
-      value: captureComplete ? "已进入智能匹配引擎" : "采集完成后自动生成方案",
-      done: captureComplete
-    }
-  ];
 
   return (
     <section className="screen scan-screen">
@@ -452,35 +448,6 @@ function ScanScreen({
           </figcaption>
         </figure>
 
-        <section className="ai-recognition-panel" aria-label="AI识别进程">
-          <header>
-            <div className="ai-live-icon">
-              <Cpu size={18} />
-            </div>
-            <div>
-              <span>AI识别进程</span>
-              <strong>{captureComplete ? "风险识别完成" : "正在生成风险证据"}</strong>
-            </div>
-            <em>{recognizedRisks.length}/{risks.length}</em>
-          </header>
-          <div className="ai-event-list">
-            {aiEvents.map((event, index) => (
-              <div className={`ai-event-row ${event.done ? "done" : index === completedTasks.length ? "active" : ""}`} key={event.label}>
-                <span />
-                <div>
-                  <strong>{event.label}</strong>
-                  <small>{event.value}</small>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="ai-risk-chips">
-            {recognizedRisks.map((risk) => (
-              <span key={risk.id}>{risk.riskType} · {risk.name}</span>
-            ))}
-          </div>
-        </section>
-
         {captureComplete ? (
           <section className="scan-complete-panel" aria-live="polite">
             <div className="success-ring">
@@ -488,15 +455,15 @@ function ScanScreen({
             </div>
             <div className="scan-complete-copy">
               <div className="complete-title-row">
-                <strong>采集完成</strong>
+                <strong>全部采集完成</strong>
                 <span className="capture-done-pill">
                   <CheckCircle2 size={16} />
                   已完成
                 </span>
               </div>
-              <p>已发现 {risks.length} 处关键风险，可进入风险分析和改造评估。</p>
+              <p>{tasks.length} 个关键视角已采集，下一步统一进入缓冲识别和风险分析。</p>
               <button className="primary-button full" onClick={goNext}>
-                查看风险分析
+                开始智能分析
                 <Sparkles size={18} />
               </button>
             </div>
@@ -508,7 +475,7 @@ function ScanScreen({
                 <span>当前空间</span>
                 <strong>{currentSpace.name}</strong>
               </div>
-              <span className="capture-status">画面质检中</span>
+              <span className="capture-status">光线/对焦检查</span>
             </div>
             <div className="progress-bar">
               <span style={{ width: `${progress}%` }} />
@@ -530,7 +497,7 @@ function ScanScreen({
 
       <header className="task-list-heading">
         <div>
-          <strong>{currentSpace.name}风险点采集</strong>
+          <strong>{currentSpace.name}视角采集</strong>
           <span>按顺序补齐关键视角</span>
         </div>
         <small>{progress}%</small>
@@ -557,8 +524,105 @@ function ScanScreen({
 
       {!captureComplete && (
         <button className="primary-button full" onClick={goNext} disabled={completedTasks.length < tasks.length}>
-          完成采集，查看风险
+          完成采集，进入分析
           <Sparkles size={18} />
+        </button>
+      )}
+    </section>
+  );
+}
+
+function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const analysisItems = [
+    {
+      label: "采集数据缓冲",
+      value: `${tasks.length} 个关键视角已进入识别队列`,
+      done: true
+    },
+    {
+      label: "空间结构建模",
+      value: `${currentSpace.name}动线、边界和重点区域已锁定`,
+      done: true
+    },
+    {
+      label: "风险目标识别",
+      value: `AI已识别 ${risks.length} 类候选风险`,
+      done: true
+    },
+    {
+      label: "适老评估准则",
+      value: "正在叠加通行、支撑、防滑与人工复核条件",
+      done: false
+    },
+    {
+      label: "方案匹配预热",
+      value: `${matchedProducts.length} 项产品与服务进入候选池`,
+      done: false
+    }
+  ];
+  const analysisComplete = activeIndex >= analysisItems.length - 1;
+
+  useEffect(() => {
+    if (analysisComplete) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setActiveIndex((current) => Math.min(analysisItems.length - 1, current + 1));
+    }, 720);
+
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, analysisComplete, analysisItems.length]);
+
+  return (
+    <section className="screen analysis-buffer-screen">
+      <div className="analysis-hero">
+        <div className="analysis-orbit" aria-hidden="true">
+          <span />
+          <span />
+          <Cpu size={34} />
+        </div>
+        <span className="eyebrow">缓冲识别</span>
+        <h2>统一识别中</h2>
+        <p>采集完成后统一上传识别，系统正在把空间画面转化为风险证据和方案输入。</p>
+      </div>
+
+      <div className="analysis-buffer-timeline" aria-label="缓冲识别进程">
+        {analysisItems.map((item, index) => (
+          <article className={index < activeIndex ? "done" : index === activeIndex ? "active" : ""} key={item.label}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <strong>{item.label}</strong>
+              <small>{item.value}</small>
+            </div>
+            {index < activeIndex ? <CheckCircle2 size={17} /> : <Activity size={17} />}
+          </article>
+        ))}
+      </div>
+
+      <section className="analysis-buffer-summary">
+        <div>
+          <span>识别对象</span>
+          <strong>{currentSpace.name}</strong>
+        </div>
+        <div>
+          <span>候选风险</span>
+          <strong>{risks.length} 项</strong>
+        </div>
+        <div>
+          <span>候选方案</span>
+          <strong>{matchedProducts.length} 项</strong>
+        </div>
+      </section>
+
+      {analysisComplete ? (
+        <button className="primary-button full" onClick={goNext}>
+          查看诊断结果
+          <ArrowRight size={18} />
+        </button>
+      ) : (
+        <button className="primary-button full analysis-wait-button" disabled>
+          正在统一分析
+          <Activity size={18} />
         </button>
       )}
     </section>
@@ -633,7 +697,7 @@ function ReportScreen({ currentSpace, elderProfile, risks, report, goNext, setSt
               <button type="button" onClick={() => setExpandedRiskId((current) => (current === risk.id ? null : risk.id))}>
                 {expandedRiskId === risk.id ? "收起原因" : "查看原因"}
               </button>
-              <button type="button" onClick={() => setStep(4)}>匹配方案</button>
+              <button type="button" onClick={() => setStep(5)}>匹配方案</button>
             </div>
           </article>
         ))}
@@ -992,7 +1056,7 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
       </div>
 
       <div className="action-row">
-        <button className="secondary-button" onClick={() => setStep(4)}>
+        <button className="secondary-button" onClick={() => setStep(5)}>
           调整清单
         </button>
         <button className="primary-button" onClick={() => setConfirmed(true)}>

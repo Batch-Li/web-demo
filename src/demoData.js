@@ -48,7 +48,7 @@ export const spaces = [
     scene: "湿区防跌倒",
     time: "约 4 分钟",
     riskCount: 3,
-    description: "优先识别扶手缺失、地面湿滑、门槛高差等高频风险。"
+    description: "重点检查扶手缺失、地面湿滑、门槛高差等高频风险。"
   },
   {
     id: "bedroom",
@@ -72,7 +72,7 @@ export const spaces = [
     scene: "湿滑与取物",
     time: "约 4 分钟",
     riskCount: 3,
-    description: "识别油水湿滑、转身通道、橱柜取物高度和明火操作风险。"
+    description: "检查油水湿滑、转身通道、橱柜取物高度和明火操作风险。"
   },
   {
     id: "living",

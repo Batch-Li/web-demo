@@ -226,7 +226,8 @@ describe("demo logic", () => {
     expect(appSource).toContain('const bottomNavOrder = ["mall", "scan", "community"];');
     expect(appSource).not.toContain('label: "复扫"');
     expect(appSource).toContain("scan-complete-panel");
-    expect(appSource).toContain("已发现 {risks.length} 处关键风险");
+    expect(appSource).toContain("开始智能分析");
+    expect(appSource).toContain("查看诊断结果");
     expect(appSource).toContain("PlanPreviewScreen");
     expect(appSource).toContain("preview-plan-list");
     expect(appSource).toContain("查看方案预览");
@@ -252,11 +253,15 @@ describe("demo logic", () => {
     expect(getCssRule(styles, ".progress-rail button")).toContain("border-radius: 999px");
   });
 
-  it("surfaces the simulated AI decision center across scan, match, and preview", () => {
+  it("keeps AI analysis after capture in a dedicated buffered recognition step", () => {
     const appSource = readFileSync(appPath, "utf8");
     const styles = readFileSync(stylesPath, "utf8");
     const scanSource = appSource.slice(
       appSource.indexOf("function ScanScreen"),
+      appSource.indexOf("function AnalysisScreen")
+    );
+    const analysisSource = appSource.slice(
+      appSource.indexOf("function AnalysisScreen"),
       appSource.indexOf("function ReportScreen")
     );
     const matchSource = appSource.slice(
@@ -268,9 +273,32 @@ describe("demo logic", () => {
       appSource.indexOf("function CommunityScreen")
     );
 
-    expect(scanSource).toContain("ai-recognition-panel");
-    expect(scanSource).toContain("AI识别进程");
-    expect(scanSource).toContain("AI已识别");
+    expect(appSource).toContain('{ key: "analysis", label: "分析", icon: Cpu }');
+    expect(scanSource).not.toContain("ai-recognition-panel");
+    expect(scanSource).not.toContain("AI已识别");
+    expect(scanSource).toContain("全部采集完成");
+    expect(scanSource).toContain("开始智能分析");
+    expect(scanSource).toContain("完成采集，进入分析");
+    expect(scanSource).not.toContain("完成采集，查看风险");
+    expect(scanSource).toContain("光线/对焦检查");
+    expect(scanSource).toContain("视角采集");
+    expect(scanSource).not.toContain("风险点采集");
+    expect(appSource).toContain("setCompletedTasks([])");
+    expect(appSource).not.toContain("setCompletedTasks([scanTasks[nextSpaceId][0].id])");
+    expect(appSource).toContain("maxUnlockedStep");
+    expect(appSource).toContain("disabled={locked}");
+    expect(appSource).not.toContain("onClick={() => setStep(index)}");
+    expect(appSource).not.toContain('label="识别风险"');
+    expect(appSource).toContain('label="候选风险"');
+    expect(spaces.map((space) => space.description).join("\n")).not.toContain("优先识别");
+    expect(spaces.map((space) => space.description).join("\n")).not.toMatch(/^识别/m);
+    expect(analysisSource).toContain("analysis-buffer-screen");
+    expect(analysisSource).toContain("统一识别中");
+    expect(analysisSource).toContain("缓冲识别");
+    expect(analysisSource).toContain("analysis-buffer-timeline");
+    expect(analysisSource).toContain("analysis-wait-button");
+    expect(analysisSource).toContain("正在统一分析");
+    expect(analysisSource).toContain("analysisComplete");
     expect(matchSource).toContain("decision-engine-panel");
     expect(matchSource).toContain("智能匹配引擎");
     expect(matchSource).toContain("决策中枢");
@@ -278,6 +306,10 @@ describe("demo logic", () => {
     expect(previewSource).toContain("platform-preview-shell");
     expect(previewSource).toContain("诊断结果");
     expect(previewSource).toContain("可执行改造清单");
+    expect(styles).toContain(".analysis-buffer-screen");
+    expect(styles).toContain(".analysis-orbit");
+    expect(styles).toContain(".analysis-wait-button:disabled");
+    expect(styles).not.toContain("scanLine");
     expect(styles).toContain(".engine-flow-grid");
     expect(styles).toContain(".platform-device-panel");
   });
@@ -379,7 +411,7 @@ describe("demo logic", () => {
     expect(appSource).toContain("确认/修改");
     expect(appSource).toContain("保存老人情况");
     expect(appSource).toContain("拍摄此处");
-    expect(appSource).toContain("画面质检中");
+    expect(appSource).toContain("光线/对焦检查");
     expect(appSource).toContain("结合老人情况的重点提示");
   });
 
