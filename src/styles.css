@@ -1208,8 +1208,8 @@ summary:focus-visible {
 
 .task-card {
   display: grid;
-  grid-template-columns: 42px 1fr;
-  gap: 12px;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 10px;
   padding: 14px 0;
   align-items: start;
   border-width: 0 0 1px;
@@ -1256,11 +1256,12 @@ summary:focus-visible {
 }
 
 .task-card button {
-  width: fit-content;
-  min-width: 88px;
-  min-height: 40px;
-  margin-top: 10px;
-  padding: 0 12px;
+  min-width: 64px;
+  min-height: 38px;
+  padding: 0 10px;
+  align-self: start;
+  white-space: nowrap;
+  font-size: 12px;
   color: var(--primary-dark);
   background: var(--primary-soft);
 }

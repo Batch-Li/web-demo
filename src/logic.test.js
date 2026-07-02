@@ -316,6 +316,8 @@ describe("demo logic", () => {
     expect(styles).toContain(".analysis-wait-button:disabled");
     expect(styles).toContain(".scan-screen > *");
     expect(styles).toContain("flex-shrink: 0");
+    expect(getCssRule(styles, ".task-card")).toContain("grid-template-columns: 42px minmax(0, 1fr) auto");
+    expect(getCssRule(styles, ".task-card button")).not.toContain("margin-top: 10px");
     expect(styles).not.toContain("scanLine");
     expect(styles).toContain(".engine-flow-grid");
     expect(styles).toContain(".platform-device-panel");
@@ -417,7 +419,7 @@ describe("demo logic", () => {
     expect(appSource).toContain("本次评估对象");
     expect(appSource).toContain("确认/修改");
     expect(appSource).toContain("保存老人情况");
-    expect(appSource).toContain("拍摄此处");
+    expect(appSource).not.toContain("拍摄此处");
     expect(appSource).toContain("光线/对焦检查");
     expect(appSource).toContain("结合老人情况的重点提示");
     expect(appSource).toContain("age-stepper");

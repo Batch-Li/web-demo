@@ -512,7 +512,7 @@ function ScanScreen({
               </div>
               <button onClick={() => completeTask(task.id)}>
                 {done ? <CheckCircle2 size={17} /> : <Camera size={17} />}
-                {done ? "已采集" : "拍摄此处"}
+                {done ? "已采集" : "拍摄"}
               </button>
             </article>
           );
