@@ -252,6 +252,36 @@ describe("demo logic", () => {
     expect(getCssRule(styles, ".progress-rail button")).toContain("border-radius: 999px");
   });
 
+  it("surfaces the simulated AI decision center across scan, match, and preview", () => {
+    const appSource = readFileSync(appPath, "utf8");
+    const styles = readFileSync(stylesPath, "utf8");
+    const scanSource = appSource.slice(
+      appSource.indexOf("function ScanScreen"),
+      appSource.indexOf("function ReportScreen")
+    );
+    const matchSource = appSource.slice(
+      appSource.indexOf("function MatchScreen"),
+      appSource.indexOf("function MallScreen")
+    );
+    const previewSource = appSource.slice(
+      appSource.indexOf("function PlanPreviewScreen"),
+      appSource.indexOf("function CommunityScreen")
+    );
+
+    expect(scanSource).toContain("ai-recognition-panel");
+    expect(scanSource).toContain("AI识别进程");
+    expect(scanSource).toContain("AI已识别");
+    expect(matchSource).toContain("decision-engine-panel");
+    expect(matchSource).toContain("智能匹配引擎");
+    expect(matchSource).toContain("决策中枢");
+    expect(matchSource).toContain("recommendation-card");
+    expect(previewSource).toContain("platform-preview-shell");
+    expect(previewSource).toContain("诊断结果");
+    expect(previewSource).toContain("可执行改造清单");
+    expect(styles).toContain(".engine-flow-grid");
+    expect(styles).toContain(".platform-device-panel");
+  });
+
   it("keeps the scan home neutral before recognition starts", () => {
     const appSource = readFileSync(appPath, "utf8");
     const styles = readFileSync(stylesPath, "utf8");

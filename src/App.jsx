@@ -1,4 +1,5 @@
 import {
+  Activity,
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
@@ -7,6 +8,7 @@ import {
   CheckCircle2,
   ClipboardList,
   Bookmark,
+  Cpu,
   Heart,
   Home,
   Layers3,
@@ -19,6 +21,7 @@ import {
   ShieldCheck,
   Sparkles,
   Store,
+  Target,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -405,6 +408,29 @@ function ScanScreen({
   const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
   const captureComplete = completedTasks.length >= tasks.length;
   const currentTask = tasks.find((task) => !completedTasks.includes(task.id)) ?? tasks[tasks.length - 1];
+  const recognizedRisks = risks.slice(0, Math.min(risks.length, Math.max(1, completedTasks.length)));
+  const aiEvents = [
+    {
+      label: "空间结构定位",
+      value: completedTasks.length ? `${currentSpace.name}边界已锁定` : "等待首个采集视角",
+      done: completedTasks.length >= 1
+    },
+    {
+      label: "风险证据提取",
+      value: recognizedRisks.length ? `AI已识别 ${recognizedRisks[0].name}` : "正在等待有效画面",
+      done: completedTasks.length >= 2
+    },
+    {
+      label: "适老评估准则",
+      value: completedTasks.length >= 3 ? "已同步通行、支撑、防滑条件" : "正在结合空间类型",
+      done: completedTasks.length >= 3
+    },
+    {
+      label: "方案匹配触发",
+      value: captureComplete ? "已进入智能匹配引擎" : "采集完成后自动生成方案",
+      done: captureComplete
+    }
+  ];
 
   return (
     <section className="screen scan-screen">
@@ -425,6 +451,35 @@ function ScanScreen({
             <strong>{progress}%</strong>
           </figcaption>
         </figure>
+
+        <section className="ai-recognition-panel" aria-label="AI识别进程">
+          <header>
+            <div className="ai-live-icon">
+              <Cpu size={18} />
+            </div>
+            <div>
+              <span>AI识别进程</span>
+              <strong>{captureComplete ? "风险识别完成" : "正在生成风险证据"}</strong>
+            </div>
+            <em>{recognizedRisks.length}/{risks.length}</em>
+          </header>
+          <div className="ai-event-list">
+            {aiEvents.map((event, index) => (
+              <div className={`ai-event-row ${event.done ? "done" : index === completedTasks.length ? "active" : ""}`} key={event.label}>
+                <span />
+                <div>
+                  <strong>{event.label}</strong>
+                  <small>{event.value}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="ai-risk-chips">
+            {recognizedRisks.map((risk) => (
+              <span key={risk.id}>{risk.riskType} · {risk.name}</span>
+            ))}
+          </div>
+        </section>
 
         {captureComplete ? (
           <section className="scan-complete-panel" aria-live="polite">
@@ -594,6 +649,8 @@ function ReportScreen({ currentSpace, elderProfile, risks, report, goNext, setSt
 
 function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemIds, goNext }) {
   const selectedProducts = products.filter((product) => planItemIds.includes(product.id));
+  const highRiskCount = risks.filter((risk) => risk.level === "高" || risk.level === "中高").length;
+  const priorityRisks = risks.slice(0, 2);
   const selectedBudget = selectedProducts.reduce(
     (range, product) => ({
       min: range.min + product.budgetMin,
@@ -609,7 +666,45 @@ function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemI
 
   return (
     <section className="screen">
-      <SectionTitle eyebrow="方案匹配" title="生成本次方案清单" text="系统按风险项推荐产品和服务，家属可先调整清单再看效果预览。" />
+      <SectionTitle eyebrow="方案匹配" title="智能中枢生成方案" text="AI 识别结果进入决策中枢，按风险优先级、老人情况和预算约束生成可执行清单。" />
+
+      <section className="decision-engine-panel" aria-label="智能匹配引擎">
+        <header>
+          <div className="engine-icon">
+            <Cpu size={20} />
+          </div>
+          <div>
+            <span>智能匹配引擎</span>
+            <strong>诊断结果进入决策中枢</strong>
+          </div>
+          <em>{Math.min(96, 84 + highRiskCount * 3)}%</em>
+        </header>
+        <div className="engine-flow-grid">
+          <div className="engine-node">
+            <span>诊断结果</span>
+            <strong>{risks.length} 项风险</strong>
+            <small>{highRiskCount} 项建议优先处理</small>
+          </div>
+          <div className="engine-core">
+            <Activity size={22} />
+            <strong>决策中枢</strong>
+            <small>风险分层 · 预算约束 · 施工复核</small>
+          </div>
+          <div className="engine-node output">
+            <span>可执行改造清单</span>
+            <strong>{matchedProducts.length} 项候选</strong>
+            <small>已按适配度排序</small>
+          </div>
+        </div>
+        <div className="engine-signal-list">
+          {priorityRisks.map((risk) => (
+            <span key={risk.id}>
+              <ShieldCheck size={14} />
+              {risk.name}
+            </span>
+          ))}
+        </div>
+      </section>
 
       <div className="budget-card">
         <div>
@@ -620,33 +715,36 @@ function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemI
       </div>
 
       <div className="product-list">
-        {matchedProducts.map((product) => {
+        {matchedProducts.map((product, index) => {
           const linkedRisks = risks.filter((risk) => product.riskIds.includes(risk.id));
+          const matchScore = Math.max(82, 96 - index * 4);
           return (
-            <article className="product-card" key={product.id}>
-              <div className="plan-product-media" style={{ "--image": `url(${product.imageUrl})` }}>
+            <article className="product-card recommendation-card" key={product.id}>
+              <div className="plan-product-media recommendation-media" style={{ "--image": `url(${product.imageUrl})` }}>
                 <img className="plan-product-thumb" src={product.imageUrl} alt={product.name} loading="lazy" />
+                <span>{matchScore}% 匹配</span>
               </div>
-              <header>
-                <span>{product.category}</span>
-                <strong>{product.name}</strong>
-              </header>
-              <p>{product.condition}</p>
-              <div className="product-meta">
-                <span>{product.budgetMin}-{product.budgetMax} 元</span>
-                <span>{product.review}</span>
+              <div className="recommendation-content">
+                <header>
+                  <span>{product.category}</span>
+                  <strong>{product.name}</strong>
+                </header>
+                <p>{product.condition}</p>
+                <div className="recommendation-reason">
+                  <Target size={15} />
+                  <span>优先解决：{linkedRisks.map((risk) => risk.name).slice(0, 2).join("、")}</span>
+                </div>
+                <div className="product-meta">
+                  <span>{product.budgetMin}-{product.budgetMax} 元</span>
+                  <span>{product.review}</span>
+                </div>
+                <button
+                  className={planItemIds.includes(product.id) ? "selected-button inline" : "secondary-button inline"}
+                  onClick={() => togglePlanItem(product.id)}
+                >
+                  {planItemIds.includes(product.id) ? "已在清单" : "加入清单"}
+                </button>
               </div>
-              <div className="risk-tags">
-                {linkedRisks.map((risk) => (
-                  <span key={risk.id}>{risk.name}</span>
-                ))}
-              </div>
-              <button
-                className={planItemIds.includes(product.id) ? "selected-button inline" : "secondary-button inline"}
-                onClick={() => togglePlanItem(product.id)}
-              >
-                {planItemIds.includes(product.id) ? "已在清单" : "加入清单"}
-              </button>
             </article>
           );
         })}
@@ -835,34 +933,43 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
         </div>
       )}
 
-      <div className="preview-meta">
-        <div>
-          <span>本次方案单</span>
-          <strong>{previewProducts.length} 项</strong>
-        </div>
-        <div>
-          <span>需人工复核</span>
-          <strong>{reviewItems.length ? reviewItems.join("、") : "暂无"}</strong>
-        </div>
-        <div>
-          <span>预计改善</span>
-          <strong>高风险项预计减少，需复扫或人工复核确认</strong>
-        </div>
-      </div>
+      <div className="platform-preview-shell">
+        <section className="platform-device-panel diagnostic-panel">
+          <header>
+            <span>家属端</span>
+            <strong>诊断结果</strong>
+          </header>
+          <div className="platform-score-line">
+            <span>风险分</span>
+            <strong>{report.score}</strong>
+            <small>{report.level}</small>
+          </div>
+          <ul>
+            <li>{reviewItems.length ? reviewItems[0] : "暂无人工复核项"}</li>
+            <li>预计改善后风险分降至 {expectedScore}</li>
+          </ul>
+        </section>
 
-      <div className="preview-plan-list">
-        {previewProducts.map((product) => (
-          <article key={product.id}>
-            <span className="preview-product-thumb" style={{ "--image": `url(${product.imageUrl})` }}>
-              <img src={product.imageUrl} alt={product.name} loading="lazy" />
-            </span>
-            <div>
-              <strong>{product.name}</strong>
-              <span>{product.category} · {product.budgetMin}-{product.budgetMax} 元</span>
-            </div>
-            <CheckCircle2 size={18} />
-          </article>
-        ))}
+        <section className="platform-device-panel console-panel">
+          <header>
+            <span>服务端</span>
+            <strong>可执行改造清单</strong>
+          </header>
+          <div className="preview-plan-list console-plan-list">
+            {previewProducts.map((product) => (
+              <article key={product.id}>
+                <span className="preview-product-thumb" style={{ "--image": `url(${product.imageUrl})` }}>
+                  <img src={product.imageUrl} alt={product.name} loading="lazy" />
+                </span>
+                <div>
+                  <strong>{product.name}</strong>
+                  <span>{product.category} · {product.budgetMin}-{product.budgetMax} 元</span>
+                </div>
+                <CheckCircle2 size={18} />
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
 
       <div className="case-card preview-case">
