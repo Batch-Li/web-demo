@@ -273,6 +273,69 @@ button {
   object-fit: cover;
 }
 
+.scan-home-neutral {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 240, 223, 0.26), transparent 34%),
+    linear-gradient(135deg, #3b2f27, #1f2d27 64%, #2a241f);
+}
+
+.neutral-scan-panel {
+  position: relative;
+  z-index: 1;
+  width: min(78%, 280px);
+  display: grid;
+  gap: 16px;
+  margin-top: -18px;
+}
+
+.neutral-scan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.neutral-scan-grid span {
+  min-height: 42px;
+  border: 1px solid rgba(255, 250, 244, 0.28);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: rgba(255, 250, 244, 0.86);
+  background: rgba(255, 250, 244, 0.08);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.neutral-scan-frame {
+  min-height: 96px;
+  border: 1px solid rgba(255, 250, 244, 0.48);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #fffaf4;
+  background: rgba(255, 250, 244, 0.1);
+}
+
+.neutral-scan-frame span {
+  width: 66%;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--primary);
+  box-shadow: 0 0 20px rgba(207, 110, 44, 0.52);
+}
+
+.scan-home-neutral .scan-home-focus {
+  z-index: 2;
+}
+
+.scan-home-neutral figcaption {
+  z-index: 3;
+}
+
 .scan-home-preview::after {
   content: "";
   position: absolute;
@@ -280,6 +343,13 @@ button {
   background:
     linear-gradient(180deg, rgba(28, 25, 22, 0.08), rgba(28, 25, 22, 0.74)),
     linear-gradient(90deg, rgba(28, 25, 22, 0.62), transparent 58%);
+}
+
+.scan-home-neutral::after {
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(28, 25, 22, 0.06), rgba(28, 25, 22, 0.68)),
+    linear-gradient(90deg, rgba(28, 25, 22, 0.46), transparent 64%);
 }
 
 .scan-home-focus {
@@ -731,7 +801,8 @@ button {
   width: 100%;
   height: 220px;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
+  background: #ead7c2;
 }
 
 .capture-viewfinder::after {
@@ -1220,7 +1291,7 @@ button {
   width: 100%;
   height: 118px;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 8px;
   margin-bottom: 12px;
   background: #ead7c2;
@@ -1458,7 +1529,7 @@ blockquote {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .before-after.compact div {
@@ -1889,7 +1960,7 @@ blockquote {
   width: 58px;
   height: 58px;
   border-radius: 8px;
-  object-fit: cover;
+  object-fit: contain;
   background: #ead7c2;
 }
 
@@ -2068,7 +2139,7 @@ blockquote {
   width: 100%;
   aspect-ratio: 1.2 / 1;
   border-radius: 8px;
-  object-fit: cover;
+  object-fit: contain;
   background: #ead7c2;
 }
 

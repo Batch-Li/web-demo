@@ -229,8 +229,15 @@ describe("demo logic", () => {
     );
 
     expect(homeSource).toContain("scan-home-preview");
+    expect(homeSource).toContain("scan-home-neutral");
     expect(homeSource).toContain("capture-route");
-    expect(homeSource).toContain("扫描前只做采集引导");
+    expect(homeSource).toContain("先选空间");
+    expect(homeSource).toContain("支持多个家庭空间");
+    expect(homeSource).not.toContain("currentSpace");
+    expect(homeSource).not.toContain("previewImage");
+    expect(homeSource).not.toContain("<img");
+    expect(homeSource).not.toContain("setStep(2)");
+    expect(homeSource).not.toContain("卫生间");
     expect(appSource).toContain("scanPreviewImages");
     expect(appSource).not.toContain("spacePreviewImages");
     expect(appSource).not.toContain("homePreviewImages");
@@ -240,6 +247,20 @@ describe("demo logic", () => {
     expect(homeSource).not.toContain("湿区防滑");
     expect(homeSource).not.toContain("risk-shortcuts");
     expect(getCssRule(styles, ".evidence-panel")).toContain("display: none");
+  });
+
+  it("shows product and case images without cropping important content", () => {
+    const styles = readFileSync(stylesPath, "utf8");
+
+    [
+      ".capture-viewfinder img",
+      ".plan-product-thumb",
+      ".product-image img",
+      ".preview-plan-list img",
+      ".post-image-grid img"
+    ].forEach((selector) => {
+      expect(getCssRule(styles, selector)).toContain("object-fit: contain");
+    });
   });
 
   it("keeps user-facing scan and profile flows free of demo implementation wording", () => {

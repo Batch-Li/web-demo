@@ -65,12 +65,6 @@ const scanPreviewImages = {
   corridor: "/assets/community/corridor-cable.png"
 };
 
-const homeCaptureRoutes = {
-  bathroom: ["空间全景", "地面区域", "坐便区两侧", "入口边缘"],
-  bedroom: ["空间全景", "床边区域", "夜间动线", "家具边角"],
-  corridor: ["空间全景", "通道区域", "入口边缘", "地面杂物"]
-};
-
 const defaultElderProfile = {
   age: "78",
   living: "独居",
@@ -279,51 +273,61 @@ function BottomNav({ activeEntrance, switchEntrance }) {
   );
 }
 
-function HomeScreen({ currentSpace, tasks, setStep }) {
-  const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
-  const captureRoute = homeCaptureRoutes[currentSpace.id] ?? tasks.slice(0, 4).map((task) => task.title.replace("拍摄", ""));
+function HomeScreen({ setStep }) {
+  const startSteps = ["选择评估空间", "确认老人情况", "按引导采集", "生成报告方案"];
 
   return (
     <section className="screen scan-home-screen">
       <div className="scan-home-hero">
-        <figure className="scan-home-preview">
-          <img src={previewImage} alt={`${currentSpace.name}待扫描空间预览`} />
+        <figure className="scan-home-preview scan-home-neutral" aria-label="空间扫描入口示意">
+          <div className="neutral-scan-panel" aria-hidden="true">
+            <div className="neutral-scan-grid">
+              <span><Layers3 size={16} />空间</span>
+              <span><Camera size={16} />采集</span>
+              <span><BarChart3 size={16} />评估</span>
+              <span><ClipboardList size={16} />方案</span>
+            </div>
+            <div className="neutral-scan-frame">
+              <Camera size={30} />
+              <span />
+            </div>
+          </div>
           <div className="scan-home-focus" aria-hidden="true" />
           <figcaption>
-            <span>准备扫描</span>
-            <strong>{currentSpace.name}</strong>
+            <span>准备评估</span>
+            <strong>先选空间</strong>
           </figcaption>
         </figure>
         <div className="scan-home-copy">
           <span className="eyebrow">空间扫描</span>
           <h2>
-            对准空间
+            先选空间
             <br />
             开始评估
           </h2>
-          <p>按引导拍摄关键视角，系统完成识别、报告和方案预览。</p>
+          <p>先确认要评估的空间，再按引导拍摄关键视角，系统完成识别、报告和方案预览。</p>
         </div>
       </div>
 
       <div className="home-status-strip">
         <div>
-          <strong>{currentSpace.time}</strong>
-          <span>完成一次空间评估</span>
+          <strong>{spaces.length} 类空间</strong>
+          <span>支持多个家庭空间</span>
         </div>
         <div>
-          <strong>{tasks.length} 个视角</strong>
-          <span>按顺序采集更稳定</span>
+          <strong>约 4-6 分钟</strong>
+          <span>完成一次空间评估</span>
         </div>
       </div>
 
       <section className="capture-route">
         <header>
-          <strong>本次采集顺序</strong>
-          <span>扫描前只做采集引导</span>
+          <strong>开始评估流程</strong>
+          <span>先选空间再采集</span>
         </header>
         <div>
-          {captureRoute.map((label, index) => (
-            <button key={label} onClick={() => setStep(2)}>
+          {startSteps.map((label, index) => (
+            <button key={label} onClick={() => setStep(1)}>
               <span>{String(index + 1).padStart(2, "0")}</span>
               <strong>{label}</strong>
             </button>
@@ -331,10 +335,10 @@ function HomeScreen({ currentSpace, tasks, setStep }) {
         </div>
       </section>
 
-      <button className="continue-plan" onClick={() => setStep(5)}>
+      <button className="continue-plan" onClick={() => setStep(1)}>
         <div>
-          <span>最近方案预览</span>
-          <strong>2 项待确认 · 210-540 元</strong>
+          <span>下一步</span>
+          <strong>选择评估空间</strong>
         </div>
         <ArrowRight size={18} />
       </button>
