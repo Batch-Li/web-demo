@@ -541,36 +541,37 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
   const analysisItems = [
     {
       label: "采集数据缓冲",
-      value: `${tasks.length} 个关键视角已进入识别队列`,
-      done: true
+      value: `${tasks.length} 个关键视角已进入识别队列`
     },
     {
       label: "空间结构建模",
-      value: `${currentSpace.name}动线、边界和重点区域已锁定`,
-      done: true
+      value: `${currentSpace.name}动线、边界和重点区域已锁定`
     },
     {
       label: "风险目标识别",
-      value: `AI已识别 ${risks.length} 类候选风险`,
-      done: true
+      value: `AI已识别 ${risks.length} 类候选风险`
     },
     {
       label: "适老评估准则",
-      value: "正在叠加通行、支撑、防滑与人工复核条件",
-      done: false
+      value: "正在叠加通行、支撑、防滑与人工复核条件"
     },
     {
       label: "方案匹配预热",
-      value: `${matchedProducts.length} 项产品与服务进入候选池`,
-      done: false
+      value: `${matchedProducts.length} 项产品与服务进入候选池`
     }
   ];
   const analysisComplete = activeIndex >= analysisItems.length - 1;
+  const activeItem = analysisItems[activeIndex] ?? analysisItems[analysisItems.length - 1];
+  const analysisProgress = Math.min(100, Math.round(((activeIndex + 1) / analysisItems.length) * 100));
   const analysisTitle = analysisComplete ? "识别完成" : "统一识别中";
   const analysisEyebrow = analysisComplete ? "分析完成" : "缓冲识别";
   const analysisCopy = analysisComplete
     ? "风险证据、评估规则和候选方案已生成，可以进入诊断报告。"
     : "采集完成后统一上传识别，系统正在把空间画面转化为风险证据和方案输入。";
+  const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
+  const sourceFrames = tasks.slice(0, 4);
+  const confidence = Math.min(97, 82 + risks.length * 3);
+  const priorityRisks = risks.slice(0, 3);
 
   useEffect(() => {
     if (analysisComplete) return undefined;
@@ -584,29 +585,100 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
 
   return (
     <section className="screen analysis-buffer-screen">
-      <div className={`analysis-hero ${analysisComplete ? "complete" : ""}`}>
-        <div className="analysis-orbit" aria-hidden="true">
-          <span />
-          <span />
-          {analysisComplete ? <CheckCircle2 size={34} /> : <Cpu size={34} />}
-        </div>
-        <span className="eyebrow">{analysisEyebrow}</span>
-        <h2>{analysisTitle}</h2>
-        <p>{analysisCopy}</p>
-      </div>
+      <section className={`analysis-command-center ${analysisComplete ? "complete" : ""}`} aria-live="polite">
+        <header className="analysis-console-top">
+          <div>
+            <span className="eyebrow">{analysisEyebrow}</span>
+            <h2>{analysisTitle}</h2>
+            <p>{analysisCopy}</p>
+          </div>
+          <div className="analysis-status-pill">
+            {analysisComplete ? <CheckCircle2 size={16} /> : <Activity size={16} />}
+            <span>{analysisComplete ? "已完成" : "运行中"}</span>
+          </div>
+        </header>
 
-      <div className="analysis-buffer-timeline" aria-label="缓冲识别进程">
-        {analysisItems.map((item, index) => (
-          <article className={index < activeIndex ? "done" : index === activeIndex ? "active" : ""} key={item.label}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <div>
-              <strong>{item.label}</strong>
-              <small>{item.value}</small>
+        <div className="recognition-viewport">
+          <div className="source-frame-strip" aria-label="已采集源图帧">
+            {sourceFrames.map((task, index) => (
+              <figure key={task.id} style={{ "--image": `url(${previewImage})` }}>
+                <img src={previewImage} alt={`${currentSpace.name}${task.title}`} />
+                <span>{String(index + 1).padStart(2, "0")}</span>
+              </figure>
+            ))}
+          </div>
+          <div className="recognition-scan-panel">
+            <span className="scan-grid-lines" aria-hidden="true" />
+            <span className="scan-sweep" aria-hidden="true" />
+            <div className="recognition-current">
+              <Cpu size={20} />
+              <span>当前识别</span>
+              <strong>{activeItem.label}</strong>
+              <small>{activeItem.value}</small>
             </div>
-            {index < activeIndex ? <CheckCircle2 size={17} /> : <Activity size={17} />}
-          </article>
+          </div>
+        </div>
+
+        <div className="analysis-progress-panel">
+          <div>
+            <span>识别进度</span>
+            <strong>{analysisProgress}%</strong>
+          </div>
+          <div className="analysis-progress-track">
+            <span style={{ width: `${analysisProgress}%` }} />
+          </div>
+        </div>
+      </section>
+
+      <section className="analysis-signal-grid" aria-label="分析信号">
+        <div>
+          <span>源图帧</span>
+          <strong>{tasks.length}</strong>
+          <small>全部入队</small>
+        </div>
+        <div>
+          <span>候选风险</span>
+          <strong>{risks.length}</strong>
+          <small>规则待评分</small>
+        </div>
+        <div>
+          <span>置信度</span>
+          <strong>{confidence}%</strong>
+          <small>需人工复核</small>
+        </div>
+      </section>
+
+      <section className="analysis-live-feed" aria-label="缓冲识别进程">
+        <header>
+          <div>
+            <span>AI 决策中枢</span>
+            <strong>实时识别事件</strong>
+          </div>
+          <em>{analysisComplete ? "已输出" : "处理中"}</em>
+        </header>
+        {analysisItems.map((item, index) => {
+          const state = index < activeIndex ? "done" : index === activeIndex ? "active" : "";
+          return (
+            <article className={state} key={item.label}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <div>
+                <strong>{item.label}</strong>
+                <small>{item.value}</small>
+              </div>
+              {index < activeIndex ? <CheckCircle2 size={17} /> : <Activity size={17} />}
+            </article>
+          );
+        })}
+      </section>
+
+      <section className="analysis-risk-strip" aria-label="已识别候选风险">
+        {priorityRisks.map((risk) => (
+          <span key={risk.id}>
+            <ShieldCheck size={14} />
+            {risk.name}
+          </span>
         ))}
-      </div>
+      </section>
 
       <section className="analysis-buffer-summary">
         <div>

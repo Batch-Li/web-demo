@@ -300,7 +300,13 @@ describe("demo logic", () => {
     expect(analysisSource).toContain("识别完成");
     expect(analysisSource).toContain("诊断报告已生成");
     expect(analysisSource).toContain("analysis-complete-feedback");
-    expect(analysisSource).toContain("analysis-buffer-timeline");
+    expect(analysisSource).toContain("analysis-command-center");
+    expect(analysisSource).toContain("recognition-viewport");
+    expect(analysisSource).toContain("analysis-live-feed");
+    expect(analysisSource).toContain("analysis-signal-grid");
+    expect(analysisSource).toContain("AI 决策中枢");
+    expect(analysisSource).not.toContain("analysis-orbit");
+    expect(analysisSource).not.toContain("analysis-buffer-timeline");
     expect(analysisSource).toContain("analysis-wait-button");
     expect(analysisSource).toContain("正在统一分析");
     expect(analysisSource).toContain("analysisComplete");
@@ -312,7 +318,11 @@ describe("demo logic", () => {
     expect(previewSource).toContain("诊断结果");
     expect(previewSource).toContain("可执行改造清单");
     expect(styles).toContain(".analysis-buffer-screen");
-    expect(styles).toContain(".analysis-orbit");
+    expect(styles).toContain(".analysis-command-center");
+    expect(styles).toContain(".recognition-viewport");
+    expect(styles).toContain(".analysis-live-feed");
+    expect(styles).toContain(".analysis-signal-grid");
+    expect(styles).not.toContain(".analysis-orbit");
     expect(styles).toContain(".analysis-wait-button:disabled");
     expect(styles).toContain(".scan-screen > *");
     expect(styles).toContain("flex-shrink: 0");
