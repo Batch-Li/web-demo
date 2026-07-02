@@ -314,6 +314,8 @@ describe("demo logic", () => {
     expect(styles).toContain(".analysis-buffer-screen");
     expect(styles).toContain(".analysis-orbit");
     expect(styles).toContain(".analysis-wait-button:disabled");
+    expect(styles).toContain(".scan-screen > *");
+    expect(styles).toContain("flex-shrink: 0");
     expect(styles).not.toContain("scanLine");
     expect(styles).toContain(".engine-flow-grid");
     expect(styles).toContain(".platform-device-panel");

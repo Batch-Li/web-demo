@@ -886,6 +886,10 @@ summary:focus-visible {
   padding-bottom: 0;
 }
 
+.scan-screen > * {
+  flex-shrink: 0;
+}
+
 .scan-workspace {
   margin: 0 -18px 16px;
   padding: 16px 18px 18px;
