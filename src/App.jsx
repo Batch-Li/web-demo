@@ -538,50 +538,69 @@ function ScanScreen({
 
 function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [analysisProgress, setAnalysisProgress] = useState(7);
   const analysisItems = [
     {
       label: "采集数据缓冲",
-      value: `${tasks.length} 个关键视角已进入识别队列`
+      processingValue: "正在校验采集视角与画面质量",
+      completeValue: `${tasks.length} 个关键视角已进入识别队列`
     },
     {
       label: "空间结构建模",
-      value: `${currentSpace.name}动线、边界和重点区域已锁定`
+      processingValue: `${currentSpace.name}空间结构正在建模`,
+      completeValue: `${currentSpace.name}动线、边界和重点区域已锁定`
     },
     {
       label: "风险目标识别",
-      value: `AI已识别 ${risks.length} 类候选风险`
+      processingValue: "正在定位疑似风险点",
+      completeValue: `AI已识别 ${risks.length} 类候选风险`
     },
     {
       label: "适老评估准则",
-      value: "正在叠加通行、支撑、防滑与人工复核条件"
+      processingValue: "正在叠加通行、支撑、防滑与人工复核条件",
+      completeValue: "评估准则已叠加"
     },
     {
       label: "方案匹配预热",
-      value: `${matchedProducts.length} 项产品与服务进入候选池`
+      processingValue: "等待诊断报告生成后进入候选池",
+      completeValue: `${matchedProducts.length} 项产品与服务进入候选池`
     }
   ];
-  const analysisComplete = activeIndex >= analysisItems.length - 1;
+  const analysisProgressTargets = [17, 36, 57, 78, 100];
+  const analysisProgressTarget = analysisProgressTargets[activeIndex] ?? analysisProgressTargets[analysisProgressTargets.length - 1];
+  const analysisComplete = activeIndex >= analysisItems.length - 1 && analysisProgress >= 100;
   const activeItem = analysisItems[activeIndex] ?? analysisItems[analysisItems.length - 1];
-  const analysisProgressMarks = [17, 36, 57, 78, 100];
-  const analysisProgress = analysisProgressMarks[activeIndex] ?? analysisProgressMarks[analysisProgressMarks.length - 1];
   const analysisTitle = analysisComplete ? "识别完成" : "统一识别中";
   const analysisEyebrow = analysisComplete ? "分析完成" : "缓冲识别";
-  const analysisCopy = analysisComplete
-    ? "风险证据、评估规则和候选方案已生成，可以进入诊断报告。"
-    : "采集完成后统一上传识别，系统正在把空间画面转化为风险证据和方案输入。";
-  const sourceFrames = tasks.slice(0, 4);
   const confidence = Math.min(97, 82 + risks.length * 3);
   const priorityRisks = risks.slice(0, 3);
+  const getAnalysisItemValue = (item, index) => {
+    if (analysisComplete) return item.completeValue;
+    if (index === activeIndex) return item.processingValue;
+    if (index < activeIndex) return "阶段处理完成，等待汇总输出";
+    return "等待上一阶段完成";
+  };
+  const activeItemValue = getAnalysisItemValue(activeItem, activeIndex);
 
   useEffect(() => {
-    if (analysisComplete) return undefined;
+    if (activeIndex >= analysisItems.length - 1) return undefined;
 
     const timer = window.setTimeout(() => {
       setActiveIndex((current) => Math.min(analysisItems.length - 1, current + 1));
-    }, 720);
+    }, 1650);
 
     return () => window.clearTimeout(timer);
-  }, [activeIndex, analysisComplete, analysisItems.length]);
+  }, [activeIndex, analysisItems.length]);
+
+  useEffect(() => {
+    if (analysisProgress >= analysisProgressTarget) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setAnalysisProgress((current) => Math.min(analysisProgressTarget, current + 1));
+    }, 105);
+
+    return () => window.clearTimeout(timer);
+  }, [analysisProgress, analysisProgressTarget]);
 
   return (
     <section className="screen analysis-buffer-screen">
@@ -590,37 +609,17 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
           <div>
             <span className="eyebrow">{analysisEyebrow}</span>
             <h2>{analysisTitle}</h2>
-            <p>{analysisCopy}</p>
-          </div>
-          <div className="analysis-status-pill">
-            {analysisComplete ? <CheckCircle2 size={16} /> : <Activity size={16} />}
-            <span>{analysisComplete ? "已完成" : "运行中"}</span>
           </div>
         </header>
 
-        <div className="recognition-viewport">
-          <div className="source-frame-strip" aria-label="已采集源图帧">
-            {sourceFrames.map((task, index) => (
-              <figure key={task.id}>
-                <figcaption>{String(index + 1).padStart(2, "0")}</figcaption>
-                <div className="data-frame-lines" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                </div>
-                <small>{task.title}</small>
-              </figure>
-            ))}
+        <div className="analysis-inline-recognition">
+          <div className="inline-scan-icon">
+            <Cpu size={18} />
           </div>
-          <div className="recognition-scan-panel">
-            <span className="scan-grid-lines" aria-hidden="true" />
-            <span className="scan-sweep" aria-hidden="true" />
-            <div className="recognition-current">
-              <Cpu size={20} />
-              <span>当前识别</span>
-              <strong>{activeItem.label}</strong>
-              <small>{activeItem.value}</small>
-            </div>
+          <div>
+            <span>当前识别</span>
+            <strong>{activeItem.label}</strong>
+            <small>{activeItemValue}</small>
           </div>
         </div>
 
@@ -632,24 +631,6 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
           <div className="analysis-progress-track">
             <span style={{ width: `${analysisProgress}%` }} />
           </div>
-        </div>
-      </section>
-
-      <section className="analysis-signal-grid" aria-label="分析信号">
-        <div>
-          <span>源图帧</span>
-          <strong>{tasks.length}</strong>
-          <small>全部入队</small>
-        </div>
-        <div>
-          <span>候选风险</span>
-          <strong>{risks.length}</strong>
-          <small>规则待评分</small>
-        </div>
-        <div>
-          <span>置信度</span>
-          <strong>{confidence}%</strong>
-          <small>需人工复核</small>
         </div>
       </section>
 
@@ -668,7 +649,7 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
               <span>{String(index + 1).padStart(2, "0")}</span>
               <div>
                 <strong>{item.label}</strong>
-                <small>{item.value}</small>
+                <small>{getAnalysisItemValue(item, index)}</small>
               </div>
               {index < activeIndex ? <CheckCircle2 size={17} /> : <Activity size={17} />}
             </article>
@@ -676,38 +657,58 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
         })}
       </section>
 
-      <section className="analysis-risk-strip" aria-label="已识别候选风险">
-        {priorityRisks.map((risk) => (
-          <span key={risk.id}>
-            <ShieldCheck size={14} />
-            {risk.name}
-          </span>
-        ))}
-      </section>
-
-      <section className="analysis-buffer-summary">
-        <div>
-          <span>识别对象</span>
-          <strong>{currentSpace.name}</strong>
-        </div>
-        <div>
-          <span>候选风险</span>
-          <strong>{risks.length} 项</strong>
-        </div>
-        <div>
-          <span>候选方案</span>
-          <strong>{matchedProducts.length} 项</strong>
-        </div>
-      </section>
-
       {analysisComplete && (
-        <section className="analysis-complete-feedback" role="status">
-          <CheckCircle2 size={20} />
-          <div>
-            <strong>诊断报告已生成</strong>
-            <span>{risks.length} 项候选风险与 {matchedProducts.length} 项方案已进入评估结果。</span>
-          </div>
-        </section>
+        <>
+          <section className="analysis-signal-grid" aria-label="分析信号">
+            <div>
+              <span>源图帧</span>
+              <strong>{tasks.length}</strong>
+              <small>全部入队</small>
+            </div>
+            <div>
+              <span>候选风险</span>
+              <strong>{risks.length}</strong>
+              <small>规则已评分</small>
+            </div>
+            <div>
+              <span>置信度</span>
+              <strong>{confidence}%</strong>
+              <small>需人工复核</small>
+            </div>
+          </section>
+
+          <section className="analysis-risk-strip" aria-label="已识别候选风险">
+            {priorityRisks.map((risk) => (
+              <span key={risk.id}>
+                <ShieldCheck size={14} />
+                {risk.name}
+              </span>
+            ))}
+          </section>
+
+          <section className="analysis-buffer-summary">
+            <div>
+              <span>识别对象</span>
+              <strong>{currentSpace.name}</strong>
+            </div>
+            <div>
+              <span>候选风险</span>
+              <strong>{risks.length} 项</strong>
+            </div>
+            <div>
+              <span>候选方案</span>
+              <strong>{matchedProducts.length} 项</strong>
+            </div>
+          </section>
+
+          <section className="analysis-complete-feedback" role="status">
+            <CheckCircle2 size={20} />
+            <div>
+              <strong>诊断报告已生成</strong>
+              <span>{risks.length} 项候选风险与 {matchedProducts.length} 项方案已进入评估结果。</span>
+            </div>
+          </section>
+        </>
       )}
 
       {analysisComplete ? (

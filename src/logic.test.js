@@ -301,12 +301,22 @@ describe("demo logic", () => {
     expect(analysisSource).toContain("诊断报告已生成");
     expect(analysisSource).toContain("analysis-complete-feedback");
     expect(analysisSource).toContain("analysis-command-center");
-    expect(analysisSource).toContain("recognition-viewport");
+    expect(analysisSource).toContain("analysis-inline-recognition");
     expect(analysisSource).toContain("analysis-live-feed");
     expect(analysisSource).toContain("analysis-signal-grid");
     expect(analysisSource).toContain("AI 决策中枢");
-    expect(analysisSource).toContain("analysisProgressMarks");
-    expect(analysisSource).toContain("data-frame-lines");
+    expect(analysisSource).toContain("analysisProgressTargets");
+    expect(analysisSource).toContain("setAnalysisProgress");
+    expect(analysisSource).toContain("analysisProgressTarget");
+    expect(analysisSource).toContain("processingValue");
+    expect(analysisSource).toContain("completeValue");
+    expect(analysisSource).toContain("getAnalysisItemValue");
+    expect(analysisSource).toContain('{analysisComplete && (\n        <>\n          <section className="analysis-signal-grid"');
+    expect(analysisSource).not.toContain("sourceFrames");
+    expect(analysisSource).not.toContain("analysisCopy");
+    expect(analysisSource).not.toContain("source-frame-strip");
+    expect(analysisSource).not.toContain("data-frame-lines");
+    expect(analysisSource).not.toContain("recognition-viewport");
     expect(analysisSource).not.toContain("previewImage");
     expect(analysisSource).not.toContain("<img src={previewImage}");
     expect(analysisSource).not.toContain("Math.round(((activeIndex + 1) / analysisItems.length) * 100)");
@@ -315,6 +325,15 @@ describe("demo logic", () => {
     expect(analysisSource).toContain("analysis-wait-button");
     expect(analysisSource).toContain("正在统一分析");
     expect(analysisSource).toContain("analysisComplete");
+    const commandCenterSource = analysisSource.slice(
+      analysisSource.indexOf("analysis-command-center"),
+      analysisSource.indexOf("<section className=\"analysis-signal-grid\"")
+    );
+    expect(commandCenterSource).toContain("analysis-inline-recognition");
+    expect(commandCenterSource).toContain("analysis-progress-panel");
+    expect(commandCenterSource).not.toContain("<p>");
+    expect(commandCenterSource).not.toContain("recognition-viewport");
+    expect(commandCenterSource).not.toContain("source-frame-strip");
     expect(matchSource).toContain("decision-engine-panel");
     expect(matchSource).toContain("智能匹配引擎");
     expect(matchSource).toContain("决策中枢");
@@ -324,10 +343,17 @@ describe("demo logic", () => {
     expect(previewSource).toContain("可执行改造清单");
     expect(styles).toContain(".analysis-buffer-screen");
     expect(styles).toContain(".analysis-command-center");
-    expect(styles).toContain(".recognition-viewport");
+    expect(styles).toContain(".analysis-inline-recognition");
     expect(styles).toContain(".analysis-live-feed");
     expect(styles).toContain(".analysis-signal-grid");
-    expect(styles).toContain(".data-frame-lines");
+    expect(styles).not.toContain(".recognition-viewport");
+    expect(styles).not.toContain(".source-frame-strip");
+    expect(styles).not.toContain(".data-frame-lines");
+    expect(getCssRule(styles, ".analysis-command-center")).not.toContain("margin: 0 -18px");
+    expect(getCssRule(styles, ".analysis-command-center")).toContain("border-radius: 20px");
+    expect(getCssRule(styles, ".analysis-command-center")).not.toContain("#18241f");
+    expect(getCssRule(styles, ".analysis-progress-track span")).toContain("transition:");
+    expect(getCssRule(styles, ".analysis-progress-panel strong")).toContain("color: var(--primary-dark)");
     expect(styles).not.toContain(".source-frame-strip img");
     expect(styles).not.toContain(".analysis-orbit");
     expect(styles).toContain(".analysis-wait-button:disabled");

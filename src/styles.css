@@ -1359,20 +1359,20 @@ summary:focus-visible {
 .analysis-command-center {
   position: relative;
   overflow: hidden;
-  margin: 0 -18px 14px;
-  padding: 18px;
-  color: #fffaf4;
+  margin: 0 0 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(216, 111, 43, 0.14);
+  border-radius: 20px;
+  color: var(--ink);
   background:
-    linear-gradient(120deg, rgba(255, 250, 244, 0.08), transparent 34%),
-    radial-gradient(circle at 84% 20%, rgba(216, 111, 43, 0.28), transparent 34%),
-    linear-gradient(145deg, #18241f, #2a241f 58%, #37271d);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 250, 244, 0.94)),
+    var(--surface);
 }
 
 .analysis-command-center.complete {
   background:
-    linear-gradient(120deg, rgba(255, 250, 244, 0.08), transparent 34%),
-    radial-gradient(circle at 84% 20%, rgba(143, 179, 154, 0.36), transparent 34%),
-    linear-gradient(145deg, #172620, #243a2f 60%, #405c49);
+    linear-gradient(180deg, rgba(248, 255, 249, 0.94), rgba(255, 250, 244, 0.98)),
+    var(--safe-soft);
 }
 
 .analysis-command-center::before {
@@ -1380,20 +1380,17 @@ summary:focus-visible {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 250, 244, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 250, 244, 0.05) 1px, transparent 1px);
-  background-size: 24px 24px;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.92), transparent 74%);
+    linear-gradient(rgba(216, 111, 43, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(216, 111, 43, 0.04) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.48), transparent 70%);
   pointer-events: none;
 }
 
 .analysis-console-top {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: start;
+  display: block;
 }
 
 .analysis-console-top .eyebrow {
@@ -1407,172 +1404,44 @@ summary:focus-visible {
 }
 
 .analysis-console-top h2 {
-  margin: 12px 0 7px;
-  color: #ffffff;
-  font-size: 27px;
-  line-height: 1.12;
+  margin: 10px 0 6px;
+  color: var(--ink);
+  font-size: 24px;
+  line-height: 1.16;
 }
 
 .analysis-console-top p {
   max-width: 28ch;
   margin: 0;
-  color: rgba(255, 250, 244, 0.74);
+  color: #6f645b;
   font-size: 13px;
   line-height: 1.55;
 }
 
-.analysis-status-pill {
-  min-height: 38px;
-  display: inline-flex;
+.analysis-inline-recognition {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 10px;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px;
-  border: 1px solid rgba(255, 250, 244, 0.18);
-  border-radius: var(--pill);
-  color: #fffaf4;
-  background: rgba(255, 250, 244, 0.1);
-  font-size: 12px;
-  font-weight: 900;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid rgba(216, 111, 43, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
 }
 
-.recognition-viewport {
-  position: relative;
-  z-index: 1;
+.inline-scan-icon {
+  width: 40px;
+  height: 40px;
   display: grid;
-  grid-template-columns: 92px minmax(0, 1fr);
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.source-frame-strip {
-  display: grid;
-  gap: 7px;
-}
-
-.source-frame-strip figure {
-  position: relative;
-  height: 48px;
-  overflow: hidden;
-  margin: 0;
-  border: 1px solid rgba(255, 250, 244, 0.18);
+  place-items: center;
   border-radius: 12px;
-  background:
-    linear-gradient(135deg, rgba(255, 250, 244, 0.14), rgba(255, 250, 244, 0.04)),
-    repeating-linear-gradient(90deg, rgba(255, 250, 244, 0.08) 0 1px, transparent 1px 10px);
+  color: var(--primary-dark);
+  background: var(--primary-soft);
 }
 
-.source-frame-strip figure::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 78% 28%, rgba(242, 138, 63, 0.34), transparent 28%),
-    linear-gradient(90deg, rgba(24, 36, 31, 0.42), transparent);
-}
-
-.source-frame-strip figcaption {
-  position: absolute;
-  left: 7px;
-  top: 6px;
-  z-index: 1;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.data-frame-lines {
-  position: absolute;
-  left: 7px;
-  right: 8px;
-  bottom: 8px;
-  z-index: 1;
-  display: grid;
-  gap: 4px;
-}
-
-.data-frame-lines span {
-  height: 2px;
-  border-radius: var(--pill);
-  background: rgba(255, 250, 244, 0.48);
-}
-
-.data-frame-lines span:nth-child(2) {
-  width: 72%;
-  background: rgba(242, 138, 63, 0.76);
-}
-
-.data-frame-lines span:nth-child(3) {
-  width: 48%;
-}
-
-.source-frame-strip small {
-  position: absolute;
-  right: 7px;
-  top: 6px;
-  z-index: 1;
-  max-width: 48px;
-  overflow: hidden;
-  color: rgba(255, 250, 244, 0.66);
-  font-size: 9px;
-  font-weight: 900;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.recognition-scan-panel {
-  position: relative;
-  min-height: 213px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 250, 244, 0.18);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 72% 26%, rgba(216, 111, 43, 0.24), transparent 28%),
-    linear-gradient(145deg, rgba(255, 250, 244, 0.12), rgba(255, 250, 244, 0.04));
-}
-
-.scan-grid-lines {
-  position: absolute;
-  inset: 16px;
-  border: 1px solid rgba(255, 250, 244, 0.22);
-  border-radius: 14px;
-  background:
-    linear-gradient(rgba(255, 250, 244, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 250, 244, 0.1) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-.scan-sweep {
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  top: 28px;
-  height: 3px;
-  border-radius: var(--pill);
-  background: linear-gradient(90deg, transparent, #f28a3f, transparent);
-  box-shadow: 0 0 18px rgba(242, 138, 63, 0.62);
-  animation: scanSweep 1.45s ease-in-out infinite;
-}
-
-.recognition-current {
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 18px;
-  display: grid;
-  gap: 5px;
-  padding: 14px;
-  border: 1px solid rgba(255, 250, 244, 0.16);
-  border-radius: 14px;
-  background: rgba(20, 29, 25, 0.66);
-  backdrop-filter: blur(8px);
-}
-
-.recognition-current svg {
-  color: #f7b17a;
-}
-
-.recognition-current span,
-.analysis-progress-panel span,
 .analysis-live-feed header span,
 .analysis-signal-grid span,
 .analysis-signal-grid small {
@@ -1581,13 +1450,24 @@ summary:focus-visible {
   font-weight: 900;
 }
 
-.recognition-current strong {
-  color: #ffffff;
-  font-size: 17px;
+.analysis-inline-recognition span,
+.analysis-progress-panel span {
+  color: #8a5a34;
+  font-size: 11px;
+  font-weight: 900;
 }
 
-.recognition-current small {
-  color: rgba(255, 250, 244, 0.72);
+.analysis-inline-recognition strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.analysis-inline-recognition small {
+  display: block;
+  margin-top: 3px;
+  color: #74675d;
   font-size: 12px;
   line-height: 1.45;
 }
@@ -1607,7 +1487,7 @@ summary:focus-visible {
 }
 
 .analysis-progress-panel strong {
-  color: #ffffff;
+  color: var(--primary-dark);
   font-size: 18px;
 }
 
@@ -1623,6 +1503,7 @@ summary:focus-visible {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, #f28a3f, #f7c28f);
+  transition: width 0.42s ease-out;
 }
 
 .analysis-signal-grid {
@@ -3309,22 +3190,8 @@ blockquote {
   }
 }
 
-@keyframes scanSweep {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.45;
-  }
-
-  50% {
-    transform: translateY(138px);
-    opacity: 1;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .viewfinder-corners::after,
-  .scan-sweep,
   .success-ring {
     animation: none;
   }
