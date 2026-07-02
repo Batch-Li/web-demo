@@ -278,6 +278,8 @@ describe("demo logic", () => {
     expect(scanSource).not.toContain("AI已识别");
     expect(scanSource).toContain("全部采集完成");
     expect(scanSource).toContain("开始智能分析");
+    expect(scanSource.indexOf("capture-task-list")).toBeLessThan(scanSource.indexOf("开始智能分析"));
+    expect(scanSource.indexOf("scan-complete-panel")).toBeLessThan(scanSource.indexOf("capture-task-list"));
     expect(scanSource).toContain("完成采集，进入分析");
     expect(scanSource).not.toContain("完成采集，查看风险");
     expect(scanSource).toContain("光线/对焦检查");
@@ -295,6 +297,9 @@ describe("demo logic", () => {
     expect(analysisSource).toContain("analysis-buffer-screen");
     expect(analysisSource).toContain("统一识别中");
     expect(analysisSource).toContain("缓冲识别");
+    expect(analysisSource).toContain("识别完成");
+    expect(analysisSource).toContain("诊断报告已生成");
+    expect(analysisSource).toContain("analysis-complete-feedback");
     expect(analysisSource).toContain("analysis-buffer-timeline");
     expect(analysisSource).toContain("analysis-wait-button");
     expect(analysisSource).toContain("正在统一分析");

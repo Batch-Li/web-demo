@@ -462,10 +462,6 @@ function ScanScreen({
                 </span>
               </div>
               <p>{tasks.length} 个关键视角已采集，下一步统一进入缓冲识别和风险分析。</p>
-              <button className="primary-button full" onClick={goNext}>
-                开始智能分析
-                <Sparkles size={18} />
-              </button>
             </div>
           </section>
         ) : (
@@ -522,12 +518,19 @@ function ScanScreen({
         })}
       </div>
 
-      {!captureComplete && (
-        <button className="primary-button full" onClick={goNext} disabled={completedTasks.length < tasks.length}>
-          完成采集，进入分析
-          <Sparkles size={18} />
-        </button>
-      )}
+      <div className="scan-bottom-action">
+        {captureComplete ? (
+          <button className="primary-button full" onClick={goNext}>
+            开始智能分析
+            <Sparkles size={18} />
+          </button>
+        ) : (
+          <button className="primary-button full" onClick={goNext} disabled={completedTasks.length < tasks.length}>
+            完成采集，进入分析
+            <Sparkles size={18} />
+          </button>
+        )}
+      </div>
     </section>
   );
 }
@@ -562,6 +565,11 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
     }
   ];
   const analysisComplete = activeIndex >= analysisItems.length - 1;
+  const analysisTitle = analysisComplete ? "识别完成" : "统一识别中";
+  const analysisEyebrow = analysisComplete ? "分析完成" : "缓冲识别";
+  const analysisCopy = analysisComplete
+    ? "风险证据、评估规则和候选方案已生成，可以进入诊断报告。"
+    : "采集完成后统一上传识别，系统正在把空间画面转化为风险证据和方案输入。";
 
   useEffect(() => {
     if (analysisComplete) return undefined;
@@ -575,15 +583,15 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
 
   return (
     <section className="screen analysis-buffer-screen">
-      <div className="analysis-hero">
+      <div className={`analysis-hero ${analysisComplete ? "complete" : ""}`}>
         <div className="analysis-orbit" aria-hidden="true">
           <span />
           <span />
-          <Cpu size={34} />
+          {analysisComplete ? <CheckCircle2 size={34} /> : <Cpu size={34} />}
         </div>
-        <span className="eyebrow">缓冲识别</span>
-        <h2>统一识别中</h2>
-        <p>采集完成后统一上传识别，系统正在把空间画面转化为风险证据和方案输入。</p>
+        <span className="eyebrow">{analysisEyebrow}</span>
+        <h2>{analysisTitle}</h2>
+        <p>{analysisCopy}</p>
       </div>
 
       <div className="analysis-buffer-timeline" aria-label="缓冲识别进程">
@@ -613,6 +621,16 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
           <strong>{matchedProducts.length} 项</strong>
         </div>
       </section>
+
+      {analysisComplete && (
+        <section className="analysis-complete-feedback" role="status">
+          <CheckCircle2 size={20} />
+          <div>
+            <strong>诊断报告已生成</strong>
+            <span>{risks.length} 项候选风险与 {matchedProducts.length} 项方案已进入评估结果。</span>
+          </div>
+        </section>
+      )}
 
       {analysisComplete ? (
         <button className="primary-button full" onClick={goNext}>

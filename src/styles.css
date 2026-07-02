@@ -880,7 +880,10 @@ summary:focus-visible {
 }
 
 .scan-screen {
+  display: flex;
+  flex-direction: column;
   padding-top: 0;
+  padding-bottom: 0;
 }
 
 .scan-workspace {
@@ -1280,9 +1283,21 @@ summary:focus-visible {
   font-size: 12px;
 }
 
-.scan-complete-panel .primary-button {
-  min-height: 42px;
-  color: #ffffff;
+.scan-bottom-action {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  margin: auto -18px 0;
+  padding: 12px 18px 18px;
+  border-top: 1px solid rgba(234, 217, 200, 0.9);
+  background:
+    linear-gradient(180deg, rgba(255, 250, 244, 0.78), #fffaf4 42%),
+    var(--surface);
+  backdrop-filter: blur(10px);
+}
+
+.scan-bottom-action .primary-button {
+  min-height: 52px;
 }
 
 .analysis-buffer-screen {
@@ -1298,6 +1313,12 @@ summary:focus-visible {
     radial-gradient(circle at 50% 18%, rgba(216, 111, 43, 0.36), transparent 36%),
     linear-gradient(145deg, #1f3029, #2b241f 64%, #3b2e22);
   text-align: center;
+}
+
+.analysis-hero.complete {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(143, 179, 154, 0.34), transparent 38%),
+    linear-gradient(145deg, #1e352b, #26342c 62%, #4c725e);
 }
 
 .analysis-orbit {
@@ -1334,6 +1355,11 @@ summary:focus-visible {
 .analysis-hero .eyebrow {
   color: #8c421d;
   background: #fff0df;
+}
+
+.analysis-hero.complete .eyebrow {
+  color: #28523c;
+  background: #eaf3ec;
 }
 
 .analysis-hero h2 {
@@ -1442,6 +1468,43 @@ summary:focus-visible {
 .analysis-wait-button:disabled {
   color: rgba(255, 250, 244, 0.86);
   background: #4b5c51;
+}
+
+.analysis-complete-feedback {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  align-items: center;
+  margin: 14px 0;
+  padding: 12px;
+  border: 1px solid rgba(76, 114, 94, 0.28);
+  border-radius: var(--radius);
+  color: #28523c;
+  background: var(--safe-soft);
+}
+
+.analysis-complete-feedback svg {
+  color: #ffffff;
+  border-radius: 50%;
+  padding: 6px;
+  background: var(--safe);
+}
+
+.analysis-complete-feedback strong,
+.analysis-complete-feedback span {
+  display: block;
+}
+
+.analysis-complete-feedback strong {
+  color: #244837;
+  font-size: 15px;
+}
+
+.analysis-complete-feedback span {
+  margin-top: 3px;
+  color: #547060;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .score-card {
