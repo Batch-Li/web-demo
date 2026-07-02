@@ -14,14 +14,11 @@ import {
   MessageSquare,
   Edit3,
   Plus,
-  RefreshCcw,
   Search,
   Send,
   ShieldCheck,
   Sparkles,
   Store,
-  Upload,
-  UsersRound
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
@@ -51,7 +48,7 @@ const scanSteps = [
   { key: "scan", label: "采集", icon: Camera },
   { key: "report", label: "评估", icon: BarChart3 },
   { key: "match", label: "匹配", icon: ClipboardList },
-  { key: "feedback", label: "复扫", icon: UsersRound }
+  { key: "preview", label: "预览", icon: CheckCircle2 }
 ];
 
 const entranceIcons = {
@@ -59,6 +56,8 @@ const entranceIcons = {
   mall: Store,
   community: MessageCircle
 };
+
+const bottomNavOrder = ["mall", "scan", "community"];
 
 const spacePreviewImages = {
   bathroom: "/assets/community/bathroom-after.png",
@@ -131,6 +130,12 @@ function App() {
     setStep((value) => Math.max(0, value - 1));
   };
   const switchEntrance = (entranceId) => {
+    if (entranceId === "scan") {
+      setActiveEntrance("scan");
+      setStep(1);
+      return;
+    }
+
     setActiveEntrance(entranceId);
   };
   const canGoBack = activeEntrance !== "scan" || step > 0;
@@ -167,7 +172,7 @@ function App() {
           {activeEntrance === "scan" && step === 2 && <ScanScreen {...screenProps} />}
           {activeEntrance === "scan" && step === 3 && <ReportScreen {...screenProps} />}
           {activeEntrance === "scan" && step === 4 && <MatchScreen {...screenProps} />}
-          {activeEntrance === "scan" && step === 5 && <FeedbackScreen {...screenProps} />}
+          {activeEntrance === "scan" && step === 5 && <PlanPreviewScreen {...screenProps} />}
           {activeEntrance === "mall" && <MallScreen {...screenProps} />}
           {activeEntrance === "community" && <CommunityScreen {...screenProps} />}
           <BottomNav activeEntrance={activeEntrance} switchEntrance={switchEntrance} />
@@ -180,7 +185,7 @@ function App() {
             产品主入口调整为扫描评估、方案商城、效果交流社区三部分。扫描形成风险报告，商城按风险项匹配方案，社区承载用户分享、提问和服务评价。
           </p>
           <div className="architecture">
-            {["扫描评估", "规则报告", "方案商城", "效果社区", "复扫案例", "服务迭代"].map((item, index) => (
+            {["拍照采集", "识别风险", "生成报告", "匹配方案", "预览效果", "社区反馈"].map((item, index) => (
               <div className="architecture-node" key={item}>
                 <span>{String(index + 1).padStart(2, "0")}</span>
                 {item}
@@ -247,13 +252,15 @@ function ProgressRail({ step, setStep }) {
 }
 
 function BottomNav({ activeEntrance, switchEntrance }) {
+  const navEntries = bottomNavOrder.map((id) => coreEntrances.find((entry) => entry.id === id)).filter(Boolean);
+
   return (
     <nav className="bottom-nav" aria-label="核心功能入口">
-      {coreEntrances.map((entry) => {
+      {navEntries.map((entry) => {
         const Icon = entranceIcons[entry.id];
         return (
           <button
-            className={activeEntrance === entry.id ? "active" : ""}
+            className={`${activeEntrance === entry.id ? "active" : ""} ${entry.id === "scan" ? "center-action" : ""}`}
             key={entry.id}
             onClick={() => switchEntrance(entry.id)}
           >
@@ -266,48 +273,47 @@ function BottomNav({ activeEntrance, switchEntrance }) {
   );
 }
 
-function HomeScreen({ goNext, setActiveEntrance, setStep }) {
+function HomeScreen({ setStep }) {
   return (
     <section className="screen">
       <div className="hero-band">
         <div className="hero-copy">
-          <span className="eyebrow">适老空间智能评估平台</span>
-          <h2>扫描发现风险，方案和效果继续闭环</h2>
-          <p>围绕扫描评估、方案商城、效果交流社区三大入口，形成可解释、可复扫、可持续服务的产品闭环。</p>
+          <span className="eyebrow">居家适老风险扫描</span>
+          <h2>
+            先扫出 <mark>缺少扶手</mark>
+            <br />
+            再生成改造方案
+          </h2>
+          <p>拍关键位置，系统直接给出风险、方案清单和预算预览。</p>
+          <div className="risk-shortcuts" aria-label="高频风险快捷入口">
+            <button onClick={() => setStep(3)}>缺少扶手</button>
+            <button onClick={() => setStep(3)}>门槛高差</button>
+            <button onClick={() => setStep(3)}>湿区防滑</button>
+          </div>
         </div>
         <figure className="home-cover">
           <img src="/assets/community/bathroom-after.png" alt="卫生间完成扶手和防滑改造后的效果" />
         </figure>
       </div>
 
-      <div className="core-entry-list">
-        {coreEntrances.map((entry) => {
-          const Icon = entranceIcons[entry.id];
-          return (
-            <button
-              className="core-entry-card"
-              key={entry.id}
-              onClick={() => (entry.id === "scan" ? goNext() : setActiveEntrance(entry.id))}
-            >
-              <Icon size={20} />
-              <div>
-                <strong>{entry.label}</strong>
-                <span>{entry.description}</span>
-              </div>
-            </button>
-          );
-        })}
+      <div className="home-status-strip">
+        <div>
+          <strong>预计 4 分钟</strong>
+          <span>完成一次卫生间风险扫描</span>
+        </div>
+        <div>
+          <strong>3 类风险</strong>
+          <span>扶手、湿滑、门槛</span>
+        </div>
       </div>
 
-      <div className="action-row">
-        <button className="primary-button" onClick={goNext}>
-          开始扫描评估
-          <ArrowRight size={18} />
-        </button>
-        <button className="secondary-button" onClick={() => setActiveEntrance("mall")}>
-          进入方案商城
-        </button>
-      </div>
+      <button className="continue-plan" onClick={() => setStep(5)}>
+        <div>
+          <span>我的方案单</span>
+          <strong>2 项已加入 · 210-540 元</strong>
+        </div>
+        <ArrowRight size={18} />
+      </button>
     </section>
   );
 }
@@ -345,6 +351,7 @@ function SpaceScreen({ currentSpace, elderProfile, setElderProfile, resetForSpac
 function ScanScreen({
   currentSpace,
   tasks,
+  risks,
   completedTasks,
   setCompletedTasks,
   goNext
@@ -354,6 +361,7 @@ function ScanScreen({
   };
   const progress = Math.round((completedTasks.length / tasks.length) * 100);
   const previewImage = spacePreviewImages[currentSpace.id] ?? spacePreviewImages.bathroom;
+  const captureComplete = completedTasks.length >= tasks.length;
 
   return (
     <section className="screen scan-screen">
@@ -405,20 +413,37 @@ function ScanScreen({
         })}
       </div>
 
+      {captureComplete && (
+        <section className="scan-complete-panel" aria-live="polite">
+          <div className="success-ring">
+            <CheckCircle2 size={34} />
+          </div>
+          <strong>采集完成</strong>
+          <p>已发现 {risks.length} 处关键风险，可进入风险分析和改造评估。</p>
+        </section>
+      )}
+
       <button className="primary-button full" onClick={goNext} disabled={completedTasks.length < tasks.length}>
-        完成采集，查看风险
+        {captureComplete ? "查看风险分析" : "完成采集，查看风险"}
         <Sparkles size={18} />
       </button>
     </section>
   );
 }
 
-function ReportScreen({ currentSpace, elderProfile, risks, report, goNext }) {
+function ReportScreen({ currentSpace, elderProfile, risks, report, goNext, setStep }) {
+  const [expandedRiskId, setExpandedRiskId] = useState(risks[0]?.id ?? null);
   const profileTips = getProfileInsight(elderProfile, currentSpace);
+  const highRiskCount = risks.filter((risk) => risk.level === "高" || risk.level === "中高").length;
 
   return (
     <section className="screen">
       <SectionTitle eyebrow="风险报告" title={report.title} text="系统根据空间照片、老人情况和适老安全规则，生成初步风险提示。涉及施工、承重和高差处理的内容需人工确认。" />
+
+      <div className="report-overview">
+        <strong>{currentSpace.name}风险等级：{report.level}</strong>
+        <span>发现 {risks.length} 处风险，{highRiskCount} 处建议优先处理</span>
+      </div>
 
       <div className={`score-card level-${report.level}`}>
         <div>
@@ -461,6 +486,18 @@ function ReportScreen({ currentSpace, elderProfile, risks, report, goNext }) {
               <span>{risk.rule}</span>
             </div>
             <p>{risk.action}</p>
+            {expandedRiskId === risk.id && (
+              <div className="risk-detail-panel">
+                <strong>为什么判定为风险</strong>
+                <span>{risk.evidence.join("，")}。{risk.rule}</span>
+              </div>
+            )}
+            <div className="risk-actions">
+              <button type="button" onClick={() => setExpandedRiskId((current) => (current === risk.id ? null : risk.id))}>
+                {expandedRiskId === risk.id ? "收起原因" : "查看原因"}
+              </button>
+              <button type="button" onClick={() => setStep(4)}>匹配方案</button>
+            </div>
           </article>
         ))}
       </div>
@@ -473,15 +510,29 @@ function ReportScreen({ currentSpace, elderProfile, risks, report, goNext }) {
   );
 }
 
-function MatchScreen({ report, matchedProducts, risks, goNext }) {
+function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemIds, goNext }) {
+  const selectedProducts = products.filter((product) => planItemIds.includes(product.id));
+  const selectedBudget = selectedProducts.reduce(
+    (range, product) => ({
+      min: range.min + product.budgetMin,
+      max: range.max + product.budgetMax
+    }),
+    { min: 0, max: 0 }
+  );
+  const togglePlanItem = (productId) => {
+    setPlanItemIds((current) =>
+      current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId]
+    );
+  };
+
   return (
     <section className="screen">
       <SectionTitle eyebrow="方案匹配" title="风险驱动产品/方案匹配" text="系统根据风险项、安装条件和复核要求，优先推荐适合本次评估的方案和服务。" />
 
       <div className="budget-card">
         <div>
-          <span>初步预算区间</span>
-          <strong>{report.budget.min} - {report.budget.max} 元</strong>
+          <span>当前方案清单</span>
+          <strong>{selectedProducts.length} 项 · {selectedBudget.min || report.budget.min} - {selectedBudget.max || report.budget.max} 元</strong>
         </div>
         <small>预算为初步估算，实际报价需人工确认空间条件。</small>
       </div>
@@ -491,6 +542,7 @@ function MatchScreen({ report, matchedProducts, risks, goNext }) {
           const linkedRisks = risks.filter((risk) => product.riskIds.includes(risk.id));
           return (
             <article className="product-card" key={product.id}>
+              <img className="plan-product-thumb" src={product.imageUrl} alt={product.name} loading="lazy" />
               <header>
                 <span>{product.category}</span>
                 <strong>{product.name}</strong>
@@ -505,14 +557,20 @@ function MatchScreen({ report, matchedProducts, risks, goNext }) {
                   <span key={risk.id}>{risk.name}</span>
                 ))}
               </div>
+              <button
+                className={planItemIds.includes(product.id) ? "selected-button inline" : "secondary-button inline"}
+                onClick={() => togglePlanItem(product.id)}
+              >
+                {planItemIds.includes(product.id) ? "已在清单" : "加入清单"}
+              </button>
             </article>
           );
         })}
       </div>
 
       <button className="primary-button full" onClick={goNext}>
-        进入反馈复扫
-        <RefreshCcw size={18} />
+        查看方案预览
+        <ArrowRight size={18} />
       </button>
     </section>
   );
@@ -589,7 +647,12 @@ function MallScreen({
 
       <div className="shelf-heading">
         <strong>推荐商品与服务</strong>
-        <button onClick={() => setStep(3)}>
+        <button
+          onClick={() => {
+            setActiveEntrance("scan");
+            setStep(5);
+          }}
+        >
           方案单 {selectedProducts.length} 项 · {selectedBudget.min}-{selectedBudget.max} 元
         </button>
       </div>
@@ -647,7 +710,7 @@ function MallScreen({
             setStep(1);
           }}
         >
-          重新扫描
+          重新评估
         </button>
         <button className="primary-button" onClick={() => setActiveEntrance("community")}>
           看效果案例
@@ -658,48 +721,82 @@ function MallScreen({
   );
 }
 
-function FeedbackScreen({ sampleCase, feedbackDelta, setStep }) {
-  return (
-    <section className="screen">
-      <SectionTitle eyebrow="复扫反馈" title="反馈复扫与效果确认" text="改造不是一次性结束，复扫用于确认风险是否下降，也方便家属继续调整方案。" />
+function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, setActiveEntrance, setStep }) {
+  const selectedProducts = products.filter((product) => planItemIds.includes(product.id));
+  const previewProducts = selectedProducts.length ? selectedProducts : products.slice(0, 3);
+  const expectedScore = Math.max(18, report.score - feedbackDelta.value);
+  const reviewItems = report.reviewItems.slice(0, 2);
 
-      <div className="case-card">
-        <span>{sampleCase.status}</span>
+  return (
+    <section className="screen plan-preview-screen">
+      <SectionTitle eyebrow="方案预览" title="本次改造方案清单" text="把风险项、方案项和预估改善效果放在同一页，便于家属确认下一步。" />
+
+      <div className="preview-summary">
+        <div>
+          <span>当前风险</span>
+          <strong>{report.score}</strong>
+        </div>
+        <ArrowRight size={18} />
+        <div>
+          <span>预计改善后</span>
+          <strong>{expectedScore}</strong>
+        </div>
+      </div>
+
+      <div className="preview-meta">
+        <div>
+          <span>本次方案单</span>
+          <strong>{previewProducts.length} 项</strong>
+        </div>
+        <div>
+          <span>需人工复核</span>
+          <strong>{reviewItems.length ? reviewItems.join("、") : "暂无"}</strong>
+        </div>
+        <div>
+          <span>预计改善</span>
+          <strong>高风险项 {report.highPriority.length} 项降至 0 项</strong>
+        </div>
+      </div>
+
+      <div className="preview-plan-list">
+        {previewProducts.map((product) => (
+          <article key={product.id}>
+            <img src={product.imageUrl} alt={product.name} loading="lazy" />
+            <div>
+              <strong>{product.name}</strong>
+              <span>{product.category} · {product.budgetMin}-{product.budgetMax} 元</span>
+            </div>
+            <CheckCircle2 size={18} />
+          </article>
+        ))}
+      </div>
+
+      <div className="case-card preview-case">
+        <span>参考效果</span>
         <h3>{sampleCase.title}</h3>
-        <div className="before-after">
+        <div className="before-after compact">
           <div>
             <small>改造前</small>
             <strong>{sampleCase.beforeRisk}</strong>
           </div>
-          <ArrowRight size={18} />
+          <ArrowRight size={17} />
           <div>
-            <small>复扫后</small>
+            <small>改造后</small>
             <strong>{sampleCase.afterRisk}</strong>
           </div>
         </div>
         <div className="delta-line">
-          风险分下降 {feedbackDelta.value} 分，约 {feedbackDelta.percent}%
+          参考案例风险分下降 {feedbackDelta.value} 分，约 {feedbackDelta.percent}%
         </div>
       </div>
 
-      <div className="action-list">
-        {sampleCase.actions.map((action) => (
-          <div key={action}>
-            <CheckCircle2 size={17} />
-            <span>{action}</span>
-          </div>
-        ))}
-      </div>
-
-      <blockquote>{sampleCase.feedback}</blockquote>
-
       <div className="action-row">
-        <button className="secondary-button" onClick={() => setStep(1)}>
-          更换空间
+        <button className="secondary-button" onClick={() => setStep(4)}>
+          调整清单
         </button>
-        <button className="primary-button" onClick={() => setStep(2)}>
-          再次复扫
-          <RefreshCcw size={18} />
+        <button className="primary-button" onClick={() => setActiveEntrance("mall")}>
+          去方案商城
+          <ArrowRight size={18} />
         </button>
       </div>
     </section>
@@ -868,8 +965,8 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
       </div>
 
       <button className="primary-button full" onClick={() => setActiveEntrance("scan")}>
-        去做一次复扫
-        <Upload size={18} />
+        发起新的评估
+        <Camera size={18} />
       </button>
     </section>
   );

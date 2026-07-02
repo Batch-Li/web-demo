@@ -204,6 +204,22 @@ describe("demo logic", () => {
     expect(styles).toContain("margin-top: 0");
   });
 
+  it("keeps scan as the centered primary action and closes the scan-to-preview flow", () => {
+    const appSource = readFileSync(appPath, "utf8");
+    const styles = readFileSync(stylesPath, "utf8");
+
+    expect(appSource).toContain('const bottomNavOrder = ["mall", "scan", "community"];');
+    expect(appSource).not.toContain('label: "复扫"');
+    expect(appSource).toContain("scan-complete-panel");
+    expect(appSource).toContain("已发现 {risks.length} 处关键风险");
+    expect(appSource).toContain("PlanPreviewScreen");
+    expect(appSource).toContain("preview-plan-list");
+    expect(appSource).toContain("查看方案预览");
+    expect(styles).toContain(".bottom-nav button.center-action");
+    expect(styles).toContain("@keyframes successPop");
+    expect(styles).toContain(".preview-summary");
+  });
+
   it("keeps user-facing scan and profile flows free of demo implementation wording", () => {
     const appSource = readFileSync(appPath, "utf8");
 

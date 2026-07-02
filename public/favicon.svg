@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="智绘适老">
+  <rect width="64" height="64" rx="14" fill="#cf6e2c"/>
+  <path d="M20 30h24v6H20z" fill="#fffaf4"/>
+  <path d="M20 38h6v10h-6zM38 38h6v10h-6z" fill="#fffaf4"/>
+  <path d="M24 24a8 8 0 0 1 16 0v6H24z" fill="#fff0df"/>
+  <path d="M30 16h4v14h-4z" fill="#8c421d"/>
+</svg>
