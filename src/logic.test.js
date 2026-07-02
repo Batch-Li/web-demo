@@ -218,6 +218,10 @@ describe("demo logic", () => {
   it("keeps scan as the centered primary action and closes the scan-to-preview flow", () => {
     const appSource = readFileSync(appPath, "utf8");
     const styles = readFileSync(stylesPath, "utf8");
+    const previewSource = appSource.slice(
+      appSource.indexOf("function PlanPreviewScreen"),
+      appSource.indexOf("function CommunityScreen")
+    );
 
     expect(appSource).toContain('const bottomNavOrder = ["mall", "scan", "community"];');
     expect(appSource).not.toContain('label: "复扫"');
@@ -229,6 +233,23 @@ describe("demo logic", () => {
     expect(styles).toContain(".bottom-nav button.center-action");
     expect(styles).toContain("@keyframes successPop");
     expect(styles).toContain(".preview-summary");
+    expect(getCssRule(styles, ".scan-complete-panel")).not.toContain("position: sticky");
+    expect(getCssRule(styles, ".scan-complete-panel")).not.toContain("bottom:");
+    expect(appSource).toContain("capture-done-pill");
+    expect(appSource).not.toContain("查看报告");
+    expect(previewSource).not.toContain('setActiveEntrance("community")');
+    expect(previewSource).not.toContain('setActiveEntrance("mall")');
+    expect(previewSource).toContain("确认方案单");
+  });
+
+  it("uses a narrower mobile shell and compact app navigation", () => {
+    const styles = readFileSync(stylesPath, "utf8");
+
+    expect(getCssRule(styles, ".stage")).toContain("390px");
+    expect(getCssRule(styles, ".phone-frame")).toContain("390px");
+    expect(getCssRule(styles, ".phone-frame")).not.toContain("430px");
+    expect(getCssRule(styles, ".progress-rail")).toContain("grid-template-columns: minmax(0, 1fr)");
+    expect(getCssRule(styles, ".progress-rail button")).toContain("border-radius: 999px");
   });
 
   it("keeps the scan home neutral before recognition starts", () => {

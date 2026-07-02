@@ -73,7 +73,7 @@ summary:focus-visible {
 
 .stage {
   display: grid;
-  grid-template-columns: minmax(360px, 430px);
+  grid-template-columns: minmax(340px, 390px);
   gap: 0;
   align-items: center;
   justify-content: center;
@@ -81,14 +81,14 @@ summary:focus-visible {
 }
 
 .phone-frame {
-  width: min(100%, 430px);
-  height: min(860px, calc(100vh - 56px));
-  min-height: 720px;
+  width: min(100%, 390px);
+  height: min(844px, calc(100vh - 48px));
+  min-height: 700px;
   overflow: hidden;
-  border: 10px solid #17211f;
-  border-radius: 32px;
+  border: 8px solid #17211f;
+  border-radius: 30px;
   background: var(--surface);
-  box-shadow: 0 24px 56px rgba(89, 58, 33, 0.18);
+  box-shadow: 0 22px 48px rgba(89, 58, 33, 0.2);
   display: flex;
   flex-direction: column;
 }
@@ -160,18 +160,18 @@ summary:focus-visible {
   position: relative;
   z-index: 3;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  align-items: center;
-  padding: 10px 14px 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 14px 10px;
   border-bottom: 1px solid rgba(234, 217, 200, 0.84);
   background: rgba(255, 250, 244, 0.98);
 }
 
 .progress-context {
-  display: grid;
-  gap: 2px;
-  min-width: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .progress-context span {
@@ -182,14 +182,14 @@ summary:focus-visible {
 
 .progress-context strong {
   color: var(--primary-dark);
-  font-size: 17px;
-  line-height: 1;
+  font-size: 12px;
+  line-height: 1.2;
 }
 
 .progress-track {
-  display: flex;
-  gap: 7px;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
   scrollbar-width: none;
 }
 
@@ -198,31 +198,39 @@ summary:focus-visible {
 }
 
 .progress-rail button {
-  min-width: 54px;
-  min-height: 44px;
-  display: grid;
-  place-items: center;
-  gap: 2px;
-  border-radius: var(--radius);
+  min-width: 0;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
   background: transparent;
-  color: #8a7563;
+  color: transparent;
   cursor: pointer;
 }
 
 .progress-rail button span {
-  max-width: 100%;
-  font-size: 11px;
-  white-space: nowrap;
+  width: 100%;
+  height: 5px;
+  display: block;
+  border-radius: 999px;
+  background: rgba(138, 117, 99, 0.18);
 }
 
 .progress-rail button.active {
-  color: #fffaf4;
-  background: var(--primary);
+  background: transparent;
 }
 
 .progress-rail button.done {
-  color: var(--safe);
-  background: var(--safe-soft);
+  background: transparent;
+}
+
+.progress-rail button.active span {
+  height: 6px;
+  background: var(--primary);
+}
+
+.progress-rail button.done span {
+  background: rgba(76, 114, 94, 0.55);
 }
 
 .screen {
@@ -1035,6 +1043,11 @@ summary:focus-visible {
   font-weight: 900;
 }
 
+.capture-status.done {
+  color: #ffffff !important;
+  background: var(--safe);
+}
+
 .toggle {
   display: inline-flex;
   align-items: center;
@@ -1124,9 +1137,18 @@ summary:focus-visible {
   cursor: pointer;
 }
 
-.current-capture-card button:disabled {
+.capture-done-pill {
+  min-width: 86px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: var(--radius);
+  color: #ffffff;
   background: var(--safe);
-  cursor: default;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .task-card {
@@ -1200,25 +1222,22 @@ summary:focus-visible {
 }
 
 .scan-complete-panel {
-  position: sticky;
-  bottom: 10px;
-  z-index: 4;
   display: grid;
-  place-items: center;
-  gap: 8px;
-  margin: 16px 0 4px;
-  padding: 20px 16px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
   border: 1px solid rgba(76, 114, 94, 0.18);
   border-radius: var(--radius);
-  background: var(--safe-soft);
-  box-shadow: 0 14px 24px rgba(76, 114, 94, 0.15);
+  background: rgba(242, 255, 243, 0.96);
   color: #315d3c;
-  text-align: center;
+  text-align: left;
 }
 
 .success-ring {
-  width: 68px;
-  height: 68px;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -1228,13 +1247,39 @@ summary:focus-visible {
 }
 
 .scan-complete-panel strong {
-  font-size: 19px;
+  font-size: 17px;
 }
 
 .scan-complete-panel p {
-  margin: 0;
+  margin: 4px 0 0;
   color: #426b50;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.scan-complete-copy {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.complete-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.scan-complete-panel .capture-done-pill {
+  min-width: 72px;
+  min-height: 30px;
+  border-radius: var(--pill);
+  font-size: 12px;
+}
+
+.scan-complete-panel .primary-button {
+  min-height: 42px;
+  color: #ffffff;
 }
 
 .score-card {
@@ -2152,6 +2197,26 @@ blockquote {
   line-height: 1.45;
 }
 
+.preview-confirmed {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid rgba(76, 114, 94, 0.18);
+  border-radius: var(--radius);
+  color: #315d3c;
+  background: var(--safe-soft);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.45;
+}
+
+.preview-confirmed svg {
+  color: var(--safe);
+}
+
 .preview-plan-list {
   display: grid;
   gap: 10px;
@@ -2474,16 +2539,16 @@ blockquote {
 @media (max-width: 420px) {
   .progress-rail {
     padding-inline: 10px;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .progress-rail button {
-    min-width: 50px;
-    min-height: 42px;
+    min-width: 0;
+    min-height: 20px;
   }
 
   .progress-rail button span {
-    font-size: 10px;
+    height: 5px;
   }
 
   .screen {

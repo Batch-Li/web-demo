@@ -244,20 +244,20 @@ function ProgressRail({ step, setStep }) {
   return (
     <nav className="progress-rail" aria-label="评估流程">
       <div className="progress-context">
-        <span>评估进度</span>
+        <span>当前阶段：{scanSteps[step].label}</span>
         <strong>{step + 1}/{scanSteps.length}</strong>
       </div>
       <div className="progress-track">
         {scanSteps.map((item, index) => {
-          const Icon = item.icon;
           return (
             <button
               key={item.key}
               className={index === step ? "active" : index < step ? "done" : ""}
+              aria-label={`切换到${item.label}`}
+              title={item.label}
               onClick={() => setStep(index)}
             >
-              <Icon size={15} />
-              <span>{item.label}</span>
+              <span aria-hidden="true" />
             </button>
           );
         })}
@@ -391,7 +391,15 @@ function ScanScreen({
   goNext
 }) {
   const completeTask = (taskId) => {
-    setCompletedTasks((current) => (current.includes(taskId) ? current : [...current, taskId]));
+    setCompletedTasks((current) => {
+      if (current.includes(taskId)) return current;
+
+      const next = [...current, taskId];
+      if (next.length >= tasks.length) {
+        navigator.vibrate?.(12);
+      }
+      return next;
+    });
   };
   const progress = Math.round((completedTasks.length / tasks.length) * 100);
   const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
@@ -418,27 +426,51 @@ function ScanScreen({
           </figcaption>
         </figure>
 
-        <div className="capture-controls">
-          <div>
-            <span>当前空间</span>
-            <strong>{currentSpace.name}</strong>
-          </div>
-          <span className="capture-status">画面质检中</span>
-        </div>
-        <div className="progress-bar">
-          <span style={{ width: `${progress}%` }} />
-        </div>
-        <div className="current-capture-card">
-          <div>
-            <span>当前目标</span>
-            <strong>{currentTask.title}</strong>
-            <small>{currentTask.target}</small>
-          </div>
-          <button onClick={() => completeTask(currentTask.id)} disabled={captureComplete}>
-            {captureComplete ? <CheckCircle2 size={18} /> : <Camera size={18} />}
-            {captureComplete ? "已完成" : "拍摄"}
-          </button>
-        </div>
+        {captureComplete ? (
+          <section className="scan-complete-panel" aria-live="polite">
+            <div className="success-ring">
+              <CheckCircle2 size={30} />
+            </div>
+            <div className="scan-complete-copy">
+              <div className="complete-title-row">
+                <strong>采集完成</strong>
+                <span className="capture-done-pill">
+                  <CheckCircle2 size={16} />
+                  已完成
+                </span>
+              </div>
+              <p>已发现 {risks.length} 处关键风险，可进入风险分析和改造评估。</p>
+              <button className="primary-button full" onClick={goNext}>
+                查看风险分析
+                <Sparkles size={18} />
+              </button>
+            </div>
+          </section>
+        ) : (
+          <>
+            <div className="capture-controls">
+              <div>
+                <span>当前空间</span>
+                <strong>{currentSpace.name}</strong>
+              </div>
+              <span className="capture-status">画面质检中</span>
+            </div>
+            <div className="progress-bar">
+              <span style={{ width: `${progress}%` }} />
+            </div>
+            <div className="current-capture-card">
+              <div>
+                <span>当前目标</span>
+                <strong>{currentTask.title}</strong>
+                <small>{currentTask.target}</small>
+              </div>
+              <button onClick={() => completeTask(currentTask.id)}>
+                <Camera size={18} />
+                拍摄
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <header className="task-list-heading">
@@ -468,20 +500,12 @@ function ScanScreen({
         })}
       </div>
 
-      {captureComplete && (
-        <section className="scan-complete-panel" aria-live="polite">
-          <div className="success-ring">
-            <CheckCircle2 size={34} />
-          </div>
-          <strong>采集完成</strong>
-          <p>已发现 {risks.length} 处关键风险，可进入风险分析和改造评估。</p>
-        </section>
+      {!captureComplete && (
+        <button className="primary-button full" onClick={goNext} disabled={completedTasks.length < tasks.length}>
+          完成采集，查看风险
+          <Sparkles size={18} />
+        </button>
       )}
-
-      <button className="primary-button full" onClick={goNext} disabled={completedTasks.length < tasks.length}>
-        {captureComplete ? "查看风险分析" : "完成采集，查看风险"}
-        <Sparkles size={18} />
-      </button>
     </section>
   );
 }
@@ -781,7 +805,8 @@ function MallScreen({
   );
 }
 
-function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, setActiveEntrance, setStep }) {
+function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, setStep }) {
+  const [confirmed, setConfirmed] = useState(false);
   const selectedProducts = products.filter((product) => planItemIds.includes(product.id));
   const previewProducts = selectedProducts.length ? selectedProducts : products.slice(0, 3);
   const expectedScore = Math.max(18, report.score - feedbackDelta.value);
@@ -802,6 +827,13 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
           <strong>{expectedScore}</strong>
         </div>
       </div>
+
+      {confirmed && (
+        <div className="preview-confirmed" role="status">
+          <CheckCircle2 size={18} />
+          <span>方案单已确认，可继续在方案商城查看商品和服务。</span>
+        </div>
+      )}
 
       <div className="preview-meta">
         <div>
@@ -856,9 +888,9 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
         <button className="secondary-button" onClick={() => setStep(4)}>
           调整清单
         </button>
-        <button className="primary-button" onClick={() => setActiveEntrance("mall")}>
-          去方案商城
-          <ArrowRight size={18} />
+        <button className="primary-button" onClick={() => setConfirmed(true)}>
+          {confirmed ? "已确认" : "确认方案单"}
+          <CheckCircle2 size={18} />
         </button>
       </div>
     </section>
