@@ -15,6 +15,7 @@ import {
   MessageCircle,
   MessageSquare,
   Edit3,
+  Minus,
   Plus,
   Search,
   Send,
@@ -1259,12 +1260,18 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
 
 function ProfilePanel({ profile, setProfile }) {
   const [editing, setEditing] = useState(false);
+  const parsedAge = Number.parseInt(profile.age, 10);
+  const displayAge = Number.isFinite(parsedAge) ? parsedAge : 75;
   const profileReady = [profile.age, profile.living, profile.mobility, profile.night].some((value) => value !== "待确认");
   const profileSummary = profileReady
     ? `${profile.age}岁｜${profile.living}｜${profile.night}｜${profile.mobility}`
     : "请确认老人情况";
   const updateProfile = (field, value) => {
     setProfile((current) => ({ ...current, [field]: value }));
+  };
+  const updateAge = (delta) => {
+    const nextAge = Math.min(100, Math.max(55, displayAge + delta));
+    updateProfile("age", String(nextAge));
   };
 
   return (
@@ -1285,10 +1292,18 @@ function ProfilePanel({ profile, setProfile }) {
 
       {editing && (
         <div className="profile-form">
-          <label>
+          <div className="profile-age-field">
             <span>年龄</span>
-            <input value={profile.age} onChange={(event) => updateProfile("age", event.target.value)} inputMode="numeric" />
-          </label>
+            <div className="age-stepper" role="group" aria-label="年龄选择">
+              <button type="button" onClick={() => updateAge(-1)} aria-label="减少年龄">
+                <Minus size={16} />
+              </button>
+              <strong>{displayAge}<small>岁</small></strong>
+              <button type="button" onClick={() => updateAge(1)} aria-label="增加年龄">
+                <Plus size={16} />
+              </button>
+            </div>
+          </div>
           <label>
             <span>居住情况</span>
             <select value={profile.living} onChange={(event) => updateProfile("living", event.target.value)}>

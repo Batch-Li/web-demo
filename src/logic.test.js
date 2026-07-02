@@ -420,6 +420,10 @@ describe("demo logic", () => {
     expect(appSource).toContain("拍摄此处");
     expect(appSource).toContain("光线/对焦检查");
     expect(appSource).toContain("结合老人情况的重点提示");
+    expect(appSource).toContain("age-stepper");
+    expect(appSource).toContain("减少年龄");
+    expect(appSource).toContain("增加年龄");
+    expect(appSource).not.toContain('<input value={profile.age}');
   });
 
   it("does not expose backend database language in user-facing data", () => {

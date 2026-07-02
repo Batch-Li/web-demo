@@ -851,8 +851,53 @@ summary:focus-visible {
   gap: 6px;
 }
 
-.profile-form label span {
+.profile-form label span,
+.profile-age-field > span {
   color: #5e746c;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.profile-age-field {
+  display: grid;
+  gap: 6px;
+}
+
+.age-stepper {
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fffdf8;
+}
+
+.age-stepper button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  cursor: pointer;
+}
+
+.age-stepper strong {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.age-stepper small {
+  color: var(--muted);
   font-size: 12px;
   font-weight: 900;
 }
