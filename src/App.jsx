@@ -273,39 +273,45 @@ function BottomNav({ activeEntrance, switchEntrance }) {
   );
 }
 
-function HomeScreen({ setStep }) {
-  const startSteps = ["选择评估空间", "确认老人情况", "按引导采集", "生成报告方案"];
+function HomeScreen({ resetForSpace, setStep }) {
+  const startSpace = (spaceId) => {
+    resetForSpace(spaceId);
+    setStep(1);
+  };
 
   return (
     <section className="screen scan-home-screen">
       <div className="scan-home-hero">
-        <figure className="scan-home-preview scan-home-neutral" aria-label="空间扫描入口示意">
-          <div className="neutral-scan-panel" aria-hidden="true">
-            <div className="neutral-scan-grid">
-              <span><Layers3 size={16} />空间</span>
-              <span><Camera size={16} />采集</span>
-              <span><BarChart3 size={16} />评估</span>
-              <span><ClipboardList size={16} />方案</span>
-            </div>
-            <div className="neutral-scan-frame">
-              <Camera size={30} />
-              <span />
-            </div>
-          </div>
-          <div className="scan-home-focus" aria-hidden="true" />
-          <figcaption>
-            <span>准备评估</span>
-            <strong>先选空间</strong>
-          </figcaption>
-        </figure>
         <div className="scan-home-copy">
           <span className="eyebrow">空间扫描</span>
           <h2>
-            先选空间
+            选择空间
             <br />
             开始评估
           </h2>
           <p>先确认要评估的空间，再按引导拍摄关键视角，系统完成识别、报告和方案预览。</p>
+        </div>
+        <div className="scan-home-space-list" aria-label="选择评估空间">
+          {spaces.map((space) => {
+            const imageUrl = scanPreviewImages[space.id];
+            return (
+              <button
+                className="scan-home-space"
+                key={space.id}
+                onClick={() => startSpace(space.id)}
+                style={{ "--image": `url(${imageUrl})` }}
+              >
+                <span className="space-thumb">
+                  <img src={imageUrl} alt={`${space.name}空间示例`} />
+                </span>
+                <span>
+                  <strong>{space.name}</strong>
+                  <small>{space.scene}</small>
+                </span>
+                <ArrowRight size={16} />
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -326,12 +332,18 @@ function HomeScreen({ setStep }) {
           <span>先选空间再采集</span>
         </header>
         <div>
-          {startSteps.map((label, index) => (
-            <button key={label} onClick={() => setStep(1)}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{label}</strong>
-            </button>
-          ))}
+          <button onClick={() => setStep(1)}>
+            <span>01</span>
+            <strong>选择评估空间</strong>
+          </button>
+          <button onClick={() => setStep(1)}>
+            <span>02</span>
+            <strong>确认老人情况</strong>
+          </button>
+          <button onClick={() => setStep(1)}>
+            <span>03</span>
+            <strong>进入引导采集</strong>
+          </button>
         </div>
       </section>
 
@@ -400,7 +412,7 @@ function ScanScreen({
           <p>按顺序补齐关键视角，系统自动完成画面质检并整理风险线索。</p>
         </div>
 
-        <figure className="capture-viewfinder">
+        <figure className="capture-viewfinder" style={{ "--image": `url(${previewImage})` }}>
           <img src={previewImage} alt={`${currentSpace.name}采集画面`} />
           <div className="viewfinder-corners" aria-hidden="true" />
           <figcaption>
@@ -570,7 +582,9 @@ function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemI
           const linkedRisks = risks.filter((risk) => product.riskIds.includes(risk.id));
           return (
             <article className="product-card" key={product.id}>
-              <img className="plan-product-thumb" src={product.imageUrl} alt={product.name} loading="lazy" />
+              <div className="plan-product-media" style={{ "--image": `url(${product.imageUrl})` }}>
+                <img className="plan-product-thumb" src={product.imageUrl} alt={product.name} loading="lazy" />
+              </div>
               <header>
                 <span>{product.category}</span>
                 <strong>{product.name}</strong>
@@ -692,7 +706,7 @@ function MallScreen({
           const isSelected = planItemIds.includes(product.id);
           return (
             <article className={`commerce-tile ${isRecommended ? "recommended" : ""}`} key={product.id}>
-              <div className="product-image">
+              <div className="product-image" style={{ "--image": `url(${product.imageUrl})` }}>
                 <img src={product.imageUrl} alt={product.name} loading="lazy" />
               </div>
               <div className="commerce-body">
@@ -789,7 +803,9 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
       <div className="preview-plan-list">
         {previewProducts.map((product) => (
           <article key={product.id}>
-            <img src={product.imageUrl} alt={product.name} loading="lazy" />
+            <span className="preview-product-thumb" style={{ "--image": `url(${product.imageUrl})` }}>
+              <img src={product.imageUrl} alt={product.name} loading="lazy" />
+            </span>
             <div>
               <strong>{product.name}</strong>
               <span>{product.category} · {product.budgetMin}-{product.budgetMax} 元</span>
@@ -940,7 +956,9 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
               {post.images?.length > 0 && (
                 <div className={`post-image-grid count-${Math.min(post.images.length, 2)}`}>
                   {post.images.slice(0, 2).map((imageUrl) => (
-                    <img src={imageUrl} alt={`${post.title}配图`} key={imageUrl} />
+                    <span className="post-image-frame" key={imageUrl} style={{ "--image": `url(${imageUrl})` }}>
+                      <img src={imageUrl} alt={`${post.title}配图`} />
+                    </span>
                   ))}
                 </div>
               )}

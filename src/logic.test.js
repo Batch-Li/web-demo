@@ -228,16 +228,18 @@ describe("demo logic", () => {
       appSource.indexOf("function SpaceScreen")
     );
 
-    expect(homeSource).toContain("scan-home-preview");
-    expect(homeSource).toContain("scan-home-neutral");
+    expect(homeSource).toContain("scan-home-space-list");
+    expect(homeSource).toContain("scan-home-space");
     expect(homeSource).toContain("capture-route");
-    expect(homeSource).toContain("先选空间");
+    expect(homeSource).toContain("选择空间");
     expect(homeSource).toContain("支持多个家庭空间");
+    expect(homeSource).toContain("resetForSpace");
     expect(homeSource).not.toContain("currentSpace");
     expect(homeSource).not.toContain("previewImage");
-    expect(homeSource).not.toContain("<img");
     expect(homeSource).not.toContain("setStep(2)");
     expect(homeSource).not.toContain("卫生间");
+    expect(styles).not.toContain("neutral-scan-panel");
+    expect(styles).not.toContain("scan-home-neutral");
     expect(appSource).toContain("scanPreviewImages");
     expect(appSource).not.toContain("spacePreviewImages");
     expect(appSource).not.toContain("homePreviewImages");
