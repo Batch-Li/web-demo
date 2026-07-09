@@ -25,11 +25,24 @@ export function calculateRiskScore(risks) {
   return Math.min(96, Math.round(weighted / risks.length + risks.length * 7 + reviewPenalty));
 }
 
+// 安全分 0-100，越高越安全；bathroom 默认画像 = 39（对齐 PPT v3）
+export function calculateSafetyScore(risks) {
+  const safety = 100 - Math.round(calculateRiskScore(risks) * 0.72);
+  return Math.max(0, Math.min(100, safety));
+}
+
 export function getOverallLevel(score) {
-  if (score >= 78) return "高";
-  if (score >= 62) return "中高";
-  if (score >= 42) return "中";
-  return "低";
+  if (score >= 80) return "安全：高";
+  if (score >= 60) return "安全：较高";
+  if (score >= 35) return "安全：中";
+  return "安全：低";
+}
+
+export function getSafetyTier(score) {
+  if (score >= 80) return "safe-high";
+  if (score >= 60) return "safe-medium-high";
+  if (score >= 35) return "safe-medium";
+  return "safe-low";
 }
 
 export function matchProductsForRisks(risks, products) {
@@ -61,19 +74,21 @@ export function getManualReviewItems(risks, matchedProducts) {
 }
 
 export function buildReport({ space, risks, products }) {
-  const score = calculateRiskScore(risks);
+  const score = calculateSafetyScore(risks);
   const budget = estimateBudgetRange(products);
   const highPriority = risks.filter((risk) => levelWeight[risk.level] >= 3);
   const reviewItems = getManualReviewItems(risks, products);
+  const level = getOverallLevel(score);
 
   return {
-    title: `${space.name}适老风险评估报告`,
+    title: `${space.name}适老安全评估报告`,
     score,
-    level: getOverallLevel(score),
+    level,
+    levelKey: getSafetyTier(score),
     highPriority,
     budget,
     reviewItems,
-    summary: `${space.name}共识别 ${risks.length} 类高频适老风险，其中 ${highPriority.length} 项建议优先处理。系统依据空间风险、老人行为场景和居家安全评估标准生成建议，涉及施工安全的项目进入人工校核。`
+    summary: `${space.name}安全评分 ${score}（${level}），共识别 ${risks.length} 类隐患，其中 ${highPriority.length} 项建议优先处理。系统依据空间状况、老人行为场景和居家安全评估标准生成建议，涉及施工安全的项目进入人工校核。`
   };
 }
 
@@ -83,7 +98,6 @@ export function getCaseBySpace(sampleCases, spaceId) {
 
 export function getFeedbackDelta(caseItem) {
   return {
-    value: caseItem.beforeRisk - caseItem.afterRisk,
-    percent: Math.round(((caseItem.beforeRisk - caseItem.afterRisk) / caseItem.beforeRisk) * 100)
+    value: caseItem.afterRisk - caseItem.beforeRisk
   };
 }

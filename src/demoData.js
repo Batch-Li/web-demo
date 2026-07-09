@@ -16,8 +16,8 @@ export const coreEntrances = [
   {
     id: "community",
     label: "效果社区",
-    shortLabel: "社区",
-    title: "效果交流社区",
+    shortLabel: "效果社区",
+    title: "效果社区",
     description: "查看真实改造分享、复扫案例和家庭提问。"
   }
 ];
@@ -473,7 +473,7 @@ export const products = [
   },
   {
     id: "vertical_bar",
-    name: "竖向起身扶手",
+    name: "起身支撑扶手",
     category: "支撑辅助",
     subtitle: "坐便器侧墙、淋浴入口、床边起身点均可适配",
     imageUrl: "/assets/products/vertical-bar.png",
@@ -649,8 +649,8 @@ export const sampleCases = [
     id: "case_bathroom_001",
     space: "bathroom",
     title: "独居老人卫生间湿区评估",
-    beforeRisk: 83,
-    afterRisk: 39,
+    beforeRisk: 39,
+    afterRisk: 83,
     actions: ["加装 L 型扶手", "铺设防滑垫", "门槛坡化处理"],
     feedback: "老人夜间洗漱时更容易抓握支撑点，子女认为改造优先级清晰。",
     status: "复扫完成"
@@ -659,8 +659,8 @@ export const sampleCases = [
     id: "case_bedroom_001",
     space: "bedroom",
     title: "卧室起夜动线优化",
-    beforeRisk: 68,
-    afterRisk: 34,
+    beforeRisk: 55,
+    afterRisk: 89,
     actions: ["补充感应夜灯", "调整床头柜位置", "加装床边扶手"],
     feedback: "复扫后暗区减少，床边通道更连续。",
     status: "待人工抽检"
@@ -669,8 +669,8 @@ export const sampleCases = [
     id: "case_corridor_001",
     space: "corridor",
     title: "玄关绊倒风险整理",
-    beforeRisk: 61,
-    afterRisk: 28,
+    beforeRisk: 51,
+    afterRisk: 84,
     actions: ["固定线缆", "移除翘边地垫", "安装感应灯"],
     feedback: "出入口通行更顺畅，老人回家换鞋动作更安全。",
     status: "复扫完成"
@@ -679,8 +679,8 @@ export const sampleCases = [
     id: "case_kitchen_001",
     space: "kitchen",
     title: "厨房操作区防滑与收纳调整",
-    beforeRisk: 72,
-    afterRisk: 36,
+    beforeRisk: 51,
+    afterRisk: 87,
     actions: ["铺设防滑垫", "常用物下移", "整理操作台通道"],
     feedback: "老人做饭时转身更顺，常用锅具不用再踮脚拿取。",
     status: "待人工抽检"
@@ -689,8 +689,8 @@ export const sampleCases = [
     id: "case_living_001",
     space: "living",
     title: "客厅沙发起身和地毯绊倒点优化",
-    beforeRisk: 65,
-    afterRisk: 31,
+    beforeRisk: 51,
+    afterRisk: 85,
     actions: ["固定地毯边缘", "加装起身扶手", "补充感应夜灯"],
     feedback: "沙发旁起身更稳定，夜间从客厅回卧室的暗区减少。",
     status: "复扫完成"
@@ -699,8 +699,8 @@ export const sampleCases = [
     id: "case_balcony_001",
     space: "balcony",
     title: "阳台门槛和晾晒动线处理",
-    beforeRisk: 70,
-    afterRisk: 33,
+    beforeRisk: 47,
+    afterRisk: 84,
     actions: ["门槛坡化处理", "补充防滑垫", "降低晾晒高度"],
     feedback: "晾晒衣物时不用跨高门槛，也减少了地面积水带来的滑倒风险。",
     status: "待人工复核"
@@ -727,11 +727,11 @@ export const communityPosts = [
       "/assets/community/bathroom-after.png",
       "/assets/community/bathroom-grab-bar.png"
     ],
-    title: "卫生间加扶手后，复扫风险分从 83 降到 39",
+    title: "卫生间加扶手后，复扫安全分从 39 升到 83",
     content: "之前老人洗澡转身没有支撑点，平台报告提示淋浴区无扶手和门槛高差。按方案清单装了 L 型扶手和坡化垫，复扫后高风险项少了很多。",
     actions: ["L 型扶手", "门槛坡化垫", "湿区防滑垫"],
-    beforeRisk: 83,
-    afterRisk: 39,
+    beforeRisk: 39,
+    afterRisk: 83,
     likes: 128,
     comments: 26,
     saves: 18
@@ -750,8 +750,8 @@ export const communityPosts = [
     title: "起夜灯不是越亮越好，低眩光和连续动线更重要",
     content: "卧室到卫生间之间建议用低位感应灯连续覆盖，避免强光直射。家里老人夜间起身时更容易判断方向，不会突然被亮光晃到。",
     actions: ["感应夜灯", "低位灯带", "床边通道整理"],
-    beforeRisk: 68,
-    afterRisk: 34,
+    beforeRisk: 55,
+    afterRisk: 89,
     likes: 96,
     comments: 14,
     saves: 31
@@ -767,7 +767,7 @@ export const communityPosts = [
     title: "卫生间门槛有 4 厘米，坡化垫还是要施工处理？",
     content: "报告里提示高差较大需要人工复核。家里老人用助行器，不确定普通坡化垫是否稳，想问这种情况怎么判断。",
     actions: ["门槛测量", "人工复核", "坡化方案"],
-    beforeRisk: 74,
+    beforeRisk: 39,
     afterRisk: null,
     likes: 42,
     comments: 19,
@@ -787,8 +787,8 @@ export const communityPosts = [
     title: "一周筛查 32 户，玄关线缆和地垫翘边是高频问题",
     content: "过道/玄关场景中，线缆外露、地垫翘边、鞋柜临时堆物出现频率较高。很多家庭花几十元先把动线整理好，老人进出门会顺很多。",
     actions: ["线缆固定", "地垫移除", "玄关收纳"],
-    beforeRisk: 61,
-    afterRisk: 28,
+    beforeRisk: 51,
+    afterRisk: 84,
     likes: 154,
     comments: 32,
     saves: 45

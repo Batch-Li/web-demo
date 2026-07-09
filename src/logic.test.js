@@ -16,10 +16,13 @@ import {
 } from "./demoData.js";
 import {
   buildReport,
+  calculateSafetyScore,
   getCaseBySpace,
   getFeedbackDelta,
   getManualReviewItems,
+  getOverallLevel,
   getRisksBySpace,
+  getSafetyTier,
   getSpaceById,
   matchProductsForRisks
 } from "./logic.js";
@@ -128,23 +131,23 @@ describe("demo logic", () => {
 
   it("keeps local image file contents aligned with their semantic asset names", () => {
     const expectedHashes = {
-      "/assets/products/grab-bar-l.png": "f141578fb048022e",
-      "/assets/products/vertical-bar.png": "65d28a0bc57eaec6",
+      "/assets/products/grab-bar-l.png": "a5646f205b9ab7a2",
+      "/assets/products/vertical-bar.png": "7f962dc4408cec13",
       "/assets/products/anti-slip-mat.png": "d22ed79c718519dc",
-      "/assets/products/anti-slip-coating.png": "c679e28c49e1a0f8",
+      "/assets/products/anti-slip-coating.png": "27500deb2b6155f3",
       "/assets/products/threshold-ramp.png": "3ce348e086d63d9d",
-      "/assets/products/motion-night-light.png": "eb697189404fe953",
+      "/assets/products/motion-night-light.png": "8d6891c1494969d0",
       "/assets/products/bed-rail.png": "baeab30338fdd25e",
       "/assets/products/corner-guard.png": "4e20da58b4fb6fd3",
       "/assets/products/cable-tray.png": "c15a591742c14e98",
       "/assets/products/layout-review.png": "89b5abf89530b064",
-      "/assets/community/bathroom-after.png": "c679e28c49e1a0f8",
-      "/assets/community/bathroom-grab-bar.png": "f141578fb048022e",
-      "/assets/community/bedroom-night-light.png": "eb697189404fe953",
-      "/assets/community/bedroom-bed-rail.png": "baeab30338fdd25e",
-      "/assets/community/threshold-question.png": "3ce348e086d63d9d",
-      "/assets/community/corridor-cable.png": "c15a591742c14e98",
-      "/assets/community/service-consultation.png": "89b5abf89530b064"
+      "/assets/community/bathroom-after.png": "a38fe9483d3d133f",
+      "/assets/community/bathroom-grab-bar.png": "892fcc6c31dc15d0",
+      "/assets/community/bedroom-night-light.png": "39440a68c768e118",
+      "/assets/community/bedroom-bed-rail.png": "8d6891c1494969d0",
+      "/assets/community/threshold-question.png": "a38fe9483d3d133f",
+      "/assets/community/corridor-cable.png": "cacb6d7c2819cdb3",
+      "/assets/community/service-consultation.png": "d31ab21bb50e5777"
     };
 
     Object.entries(expectedHashes).forEach(([assetPath, expectedHash]) => {
@@ -227,7 +230,7 @@ describe("demo logic", () => {
     expect(appSource).not.toContain('label: "复扫"');
     expect(appSource).toContain("scan-complete-panel");
     expect(appSource).toContain("开始智能分析");
-    expect(appSource).toContain("查看诊断结果");
+    expect(appSource).toContain("查看评估结果");
     expect(appSource).toContain("PlanPreviewScreen");
     expect(appSource).toContain("preview-plan-list");
     expect(appSource).toContain("查看方案预览");
@@ -291,20 +294,20 @@ describe("demo logic", () => {
     expect(appSource).toContain("disabled={locked}");
     expect(appSource).not.toContain("onClick={() => setStep(index)}");
     expect(appSource).not.toContain('label="识别风险"');
-    expect(appSource).toContain('label="候选风险"');
+    expect(appSource).toContain('label="风险点"');
     expect(spaces.map((space) => space.description).join("\n")).not.toContain("优先识别");
     expect(spaces.map((space) => space.description).join("\n")).not.toMatch(/^识别/m);
     expect(analysisSource).toContain("analysis-buffer-screen");
-    expect(analysisSource).toContain("统一识别中");
+    expect(analysisSource).toContain("智能识别中");
     expect(analysisSource).toContain("缓冲识别");
     expect(analysisSource).toContain("识别完成");
-    expect(analysisSource).toContain("诊断报告已生成");
+    expect(analysisSource).toContain("评估报告已生成");
     expect(analysisSource).toContain("analysis-complete-feedback");
     expect(analysisSource).toContain("analysis-command-center");
     expect(analysisSource).toContain("analysis-inline-recognition");
     expect(analysisSource).toContain("analysis-live-feed");
     expect(analysisSource).toContain("analysis-signal-grid");
-    expect(analysisSource).toContain("AI 决策中枢");
+    expect(analysisSource).toContain("智能评估");
     expect(analysisSource).toContain("analysisProgressTargets");
     expect(analysisSource).toContain("setAnalysisProgress");
     expect(analysisSource).toContain("analysisProgressTarget");
@@ -323,7 +326,7 @@ describe("demo logic", () => {
     expect(analysisSource).not.toContain("analysis-orbit");
     expect(analysisSource).not.toContain("analysis-buffer-timeline");
     expect(analysisSource).toContain("analysis-wait-button");
-    expect(analysisSource).toContain("正在统一分析");
+    expect(analysisSource).toContain("正在分析");
     expect(analysisSource).toContain("analysisComplete");
     const commandCenterSource = analysisSource.slice(
       analysisSource.indexOf("analysis-command-center"),
@@ -335,12 +338,12 @@ describe("demo logic", () => {
     expect(commandCenterSource).not.toContain("recognition-viewport");
     expect(commandCenterSource).not.toContain("source-frame-strip");
     expect(matchSource).toContain("decision-engine-panel");
-    expect(matchSource).toContain("智能匹配引擎");
-    expect(matchSource).toContain("决策中枢");
+    expect(matchSource).toContain("方案匹配");
+    expect(matchSource).toContain("匹配结果");
     expect(matchSource).toContain("recommendation-card");
     expect(previewSource).toContain("platform-preview-shell");
-    expect(previewSource).toContain("诊断结果");
-    expect(previewSource).toContain("可执行改造清单");
+    expect(previewSource).toContain("评估结果");
+    expect(previewSource).toContain("改造清单");
     expect(styles).toContain(".analysis-buffer-screen");
     expect(styles).toContain(".analysis-command-center");
     expect(styles).toContain(".analysis-inline-recognition");
@@ -526,6 +529,34 @@ describe("demo logic", () => {
     const delta = getFeedbackDelta(caseItem);
 
     expect(delta.value).toBe(44);
-    expect(delta.percent).toBe(53);
+    expect(delta).not.toHaveProperty("percent");
+  });
+
+  it("scores bathroom safety at 39 aligned with PPT v3", () => {
+    const risks = getRisksBySpace(riskRules, "bathroom");
+    expect(calculateSafetyScore(risks)).toBe(39);
+    expect(getOverallLevel(39)).toBe("安全：中");
+    expect(getOverallLevel(83)).toBe("安全：高");
+    expect(getSafetyTier(39)).toBe("safe-medium");
+    expect(getSafetyTier(83)).toBe("safe-high");
+  });
+
+  it("keeps sample cases aligned to live safety scores", () => {
+    spaces.forEach((space) => {
+      const risks = getRisksBySpace(riskRules, space.id);
+      const caseItem = getCaseBySpace(sampleCases, space.id);
+      expect(caseItem.beforeRisk).toBe(calculateSafetyScore(risks));
+      expect(caseItem.afterRisk).toBeGreaterThan(caseItem.beforeRisk);
+    });
+  });
+
+  it("renders safety-tier score cards instead of risk-level cards", () => {
+    const appSource = readFileSync(appPath, "utf8");
+    const styles = readFileSync(stylesPath, "utf8");
+    expect(appSource).toContain("levelKey");
+    expect(styles).toContain(".score-card.level-safe-high");
+    expect(styles).toContain(".score-card.level-safe-medium");
+    expect(styles).toContain(".score-card.level-safe-low");
+    expect(styles).not.toContain(".score-card.level-高");
   });
 });

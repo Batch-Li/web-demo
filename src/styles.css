@@ -85,12 +85,43 @@ summary:focus-visible {
   height: min(844px, calc(100vh - 48px));
   min-height: 700px;
   overflow: hidden;
-  border: 8px solid #17211f;
-  border-radius: 30px;
+  position: relative;
+  border: 3px solid #0e0e10;
+  border-radius: 44px;
   background: var(--surface);
-  box-shadow: 0 22px 48px rgba(89, 58, 33, 0.2);
+  box-shadow:
+    0 0 0 9px #232326,
+    0 0 0 10px #4a4a4e,
+    0 0 0 11px #161618,
+    0 34px 70px rgba(20, 16, 12, 0.42);
   display: flex;
   flex-direction: column;
+}
+
+.device-island {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 104px;
+  height: 28px;
+  background: #0a0a0c;
+  border-radius: 999px;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.device-home {
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  transform: translateX(-50%);
+  width: 128px;
+  height: 4px;
+  background: rgba(20, 16, 12, 0.26);
+  border-radius: 999px;
+  z-index: 40;
+  pointer-events: none;
 }
 
 .phone-status,
@@ -1022,8 +1053,7 @@ summary:focus-visible {
   inset: 0;
   z-index: 2;
   background:
-    linear-gradient(180deg, rgba(12, 13, 12, 0.08), transparent 36%, rgba(12, 13, 12, 0.76)),
-    linear-gradient(90deg, rgba(12, 13, 12, 0.16), transparent 42%, rgba(12, 13, 12, 0.16));
+    linear-gradient(180deg, rgba(255, 250, 244, 0) 48%, rgba(255, 250, 244, 0.84) 100%);
   pointer-events: none;
 }
 
@@ -1060,13 +1090,13 @@ summary:focus-visible {
 }
 
 .capture-viewfinder figcaption span {
-  color: rgba(255, 250, 244, 0.82);
+  color: var(--muted-strong);
   font-size: 13px;
   font-weight: 900;
 }
 
 .capture-viewfinder figcaption strong {
-  color: #ffffff;
+  color: var(--ink);
   font-size: 42px;
   line-height: 0.95;
 }
@@ -1749,12 +1779,20 @@ summary:focus-visible {
   background: linear-gradient(135deg, var(--primary), #9d5124);
 }
 
-.score-card.level-高 {
-  background: linear-gradient(135deg, #d9533f, #8f342b);
+.score-card.level-safe-high {
+  background: linear-gradient(135deg, var(--safe), #35503f);
 }
 
-.score-card.level-中高 {
-  background: linear-gradient(135deg, #d78d28, var(--primary));
+.score-card.level-safe-medium-high {
+  background: linear-gradient(135deg, #6f9182, var(--safe));
+}
+
+.score-card.level-safe-medium {
+  background: linear-gradient(135deg, #e0a23a, #b97824);
+}
+
+.score-card.level-safe-low {
+  background: linear-gradient(135deg, var(--danger), #8f342b);
 }
 
 .score-card strong {
@@ -1777,8 +1815,11 @@ summary:focus-visible {
 .score-ring {
   width: 92px;
   height: 92px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
   border: 8px solid rgba(255, 250, 244, 0.34);
   border-radius: 50%;
   background: rgba(255, 250, 244, 0.12);
@@ -1788,6 +1829,14 @@ summary:focus-visible {
   color: #fffaf4;
   font-size: 26px;
   font-weight: 900;
+  line-height: 1;
+}
+
+.score-ring small {
+  color: rgba(255, 250, 244, 0.82);
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .report-summary {
@@ -2453,12 +2502,12 @@ blockquote {
 .community-topbar {
   margin: -18px -18px 12px;
   padding: 24px 18px 18px;
-  color: #ffffff;
+  color: var(--ink);
   border-bottom: 1px solid var(--line);
   background:
-    linear-gradient(135deg, rgba(55, 43, 34, 0.76), rgba(216, 111, 43, 0.66)),
+    linear-gradient(180deg, rgba(255, 250, 244, 0.1) 22%, rgba(255, 250, 244, 0.9) 100%),
     var(--image, url("/assets/community/bathroom-after.png")) center / cover,
-    var(--primary);
+    var(--primary-soft);
 }
 
 .mall-topbar {
@@ -2485,7 +2534,7 @@ blockquote {
 .mall-topbar p,
 .community-topbar p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--muted);
   font-size: 12px;
   line-height: 1.55;
 }
@@ -2494,19 +2543,19 @@ blockquote {
   min-height: 58px;
   display: grid;
   align-content: center;
-  border-left: 1px solid rgba(255, 255, 255, 0.48);
+  border-left: 1px solid var(--line-strong);
   padding-left: 12px;
   text-align: left;
 }
 
 .mall-risk-chip span {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--muted-strong);
   font-size: 12px;
   font-weight: 900;
 }
 
 .mall-risk-chip strong {
-  color: #ffffff;
+  color: var(--primary-dark);
   font-size: 28px;
 }
 
@@ -2986,9 +3035,9 @@ blockquote {
   gap: 12px;
   align-items: end;
   background:
-    linear-gradient(135deg, rgba(42, 68, 48, 0.84), rgba(216, 111, 43, 0.54)),
+    linear-gradient(180deg, rgba(255, 250, 244, 0.1) 22%, rgba(255, 250, 244, 0.9) 100%),
     url("/assets/community/service-consultation.png") center / cover,
-    var(--safe);
+    var(--safe-soft);
 }
 
 .post-button {
@@ -3197,6 +3246,170 @@ blockquote {
   }
 }
 
+/* ===== 商城重构:带图分类入口 / 大图特色卡 / 横滑行 / 人工服务卡 ===== */
+.mall-categories {
+  display: flex;
+  gap: 10px;
+  margin: 2px 0 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+}
+.mall-categories::-webkit-scrollbar {
+  display: none;
+}
+.mall-category {
+  flex: 0 0 auto;
+  min-width: 62px;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 10px 8px;
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  color: var(--muted-strong);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+.mall-category.active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+.mall-category-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-tint);
+  color: var(--primary-dark);
+}
+.mall-category.active .mall-category-icon {
+  background: var(--primary);
+  color: #fffaf4;
+}
+
+.mall-feature {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 14px;
+  margin: 4px 0 16px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  align-items: center;
+}
+.mall-feature .product-image {
+  aspect-ratio: auto;
+  height: 118px;
+}
+.mall-feature-body {
+  display: grid;
+  gap: 6px;
+  align-content: center;
+}
+.mall-feature-body > strong {
+  font-size: 17px;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.mall-feature-body > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.mall-feature-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.mall-feature-meta strong {
+  color: var(--primary-dark);
+  font-size: 15px;
+}
+.mall-feature-meta small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.mall-shelf {
+  margin: 4px 0 14px;
+}
+.mall-rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+  margin-inline: -18px;
+  padding-inline: 18px;
+}
+.mall-rail::-webkit-scrollbar {
+  display: none;
+}
+.rail-tile {
+  flex: 0 0 132px;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+}
+.rail-tile .product-image {
+  aspect-ratio: auto;
+  height: 96px;
+  border-radius: var(--pill);
+}
+.rail-tile strong {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.rail-tile span {
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mall-service-cta {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 14px;
+  margin: 6px 0 16px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--safe-soft), var(--surface-strong));
+  border: 1px solid var(--line);
+  align-items: center;
+}
+.mall-service-cta .product-image {
+  aspect-ratio: auto;
+  height: 92px;
+}
+.mall-service-body {
+  display: grid;
+  gap: 6px;
+  align-content: center;
+}
+.mall-service-body > strong {
+  font-size: 16px;
+  color: var(--ink);
+}
+.mall-service-body > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 @media (max-width: 960px) {
   .app-shell {
     padding: 0;
@@ -3214,6 +3427,11 @@ blockquote {
     border: 0;
     border-radius: 0;
     box-shadow: none;
+  }
+
+  .device-island,
+  .device-home {
+    display: none;
   }
 
   .evidence-panel {
