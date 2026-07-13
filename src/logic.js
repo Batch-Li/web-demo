@@ -5,6 +5,15 @@ export const levelWeight = {
   "高": 4
 };
 
+export function resolvePublicAssetUrl(assetPath, baseUrl = "/") {
+  if (typeof assetPath !== "string" || !assetPath.startsWith("/assets/")) {
+    return assetPath;
+  }
+
+  const normalizedBase = `${baseUrl || "/"}`.replace(/\/*$/, "/");
+  return `${normalizedBase}${assetPath.slice(1)}`;
+}
+
 export function getSpaceById(spaces, spaceId) {
   return spaces.find((space) => space.id === spaceId) ?? spaces[0];
 }

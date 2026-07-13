@@ -48,8 +48,11 @@ import {
   getFeedbackDelta,
   getRisksBySpace,
   getSpaceById,
-  matchProductsForRisks
+  matchProductsForRisks,
+  resolvePublicAssetUrl
 } from "./logic.js";
+
+const assetUrl = (path) => resolvePublicAssetUrl(path, import.meta.env.BASE_URL);
 
 const scanSteps = [
   { key: "home", label: "入口", icon: Home },
@@ -399,10 +402,10 @@ function SpaceScreen({ currentSpace, selectedSpaceId, elderProfile, setElderProf
             className={`space-card ${space.id === selectedSpaceId ? "selected" : ""}`}
             key={space.id}
             onClick={() => resetForSpace(space.id)}
-            style={{ "--image": `url(${scanPreviewImages[space.id]})` }}
+            style={{ "--image": `url(${assetUrl(scanPreviewImages[space.id])})` }}
           >
             <span className="space-card-media">
-              <img src={scanPreviewImages[space.id]} alt={`${space.name}空间示例`} loading="lazy" />
+              <img src={assetUrl(scanPreviewImages[space.id])} alt={`${space.name}空间示例`} loading="lazy" />
             </span>
             <span className="space-scene">{space.scene}</span>
             <strong>{space.name}</strong>
@@ -456,8 +459,8 @@ function ScanScreen({
           <em>{completedTasks.length}/{tasks.length}</em>
         </div>
 
-        <figure className="capture-viewfinder" style={{ "--image": `url(${previewImage})` }}>
-          <img src={previewImage} alt={`${currentSpace.name}采集画面`} />
+        <figure className="capture-viewfinder" style={{ "--image": `url(${assetUrl(previewImage)})` }}>
+          <img src={assetUrl(previewImage)} alt={`${currentSpace.name}采集画面`} />
           <div className="viewfinder-corners" aria-hidden="true" />
           <figcaption>
             <span>已完成 {completedTasks.length}/{tasks.length}</span>
@@ -896,8 +899,8 @@ function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemI
           const linkedRisks = risks.filter((risk) => product.riskIds.includes(risk.id));
           return (
             <article className="product-card recommendation-card" key={product.id}>
-              <div className="plan-product-media recommendation-media" style={{ "--image": `url(${product.imageUrl})` }}>
-                <img className="plan-product-thumb" src={product.imageUrl} alt={product.name} loading="lazy" />
+              <div className="plan-product-media recommendation-media" style={{ "--image": `url(${assetUrl(product.imageUrl)})` }}>
+                <img className="plan-product-thumb" src={assetUrl(product.imageUrl)} alt={product.name} loading="lazy" />
                 <span>推荐</span>
               </div>
               <div className="recommendation-content">
@@ -980,7 +983,7 @@ function MallScreen({
 
   return (
     <section className="screen marketplace-screen">
-      <div className="mall-topbar" style={{ "--image": `url(${scanPreviewImages[currentSpace.id]})` }}>
+      <div className="mall-topbar" style={{ "--image": `url(${assetUrl(scanPreviewImages[currentSpace.id])})` }}>
         <div>
           <span className="eyebrow">方案商城</span>
           <h2>{currentSpace.name}方案推荐</h2>
@@ -1019,8 +1022,8 @@ function MallScreen({
 
       {featuredProduct && (
         <article className="mall-feature">
-          <div className="product-image" style={{ "--image": `url(${featuredProduct.imageUrl})` }}>
-            <img src={featuredProduct.imageUrl} alt={featuredProduct.name} loading="lazy" />
+          <div className="product-image" style={{ "--image": `url(${assetUrl(featuredProduct.imageUrl)})` }}>
+            <img src={assetUrl(featuredProduct.imageUrl)} alt={featuredProduct.name} loading="lazy" />
           </div>
           <div className="mall-feature-body">
             <span className="recommend-label">报告推荐</span>
@@ -1060,8 +1063,8 @@ function MallScreen({
             const isSelected = planItemIds.includes(product.id);
             return (
               <article className={`commerce-tile ${isRecommended ? "recommended" : ""}`} key={product.id}>
-                <div className="product-image" style={{ "--image": `url(${product.imageUrl})` }}>
-                  <img src={product.imageUrl} alt={product.name} loading="lazy" />
+                <div className="product-image" style={{ "--image": `url(${assetUrl(product.imageUrl)})` }}>
+                  <img src={assetUrl(product.imageUrl)} alt={product.name} loading="lazy" />
                 </div>
                 <div className="commerce-body">
                   <div className="shop-row">
@@ -1107,8 +1110,8 @@ function MallScreen({
           <div className="mall-rail">
             {railProducts.map((product) => (
               <article className="rail-tile" key={product.id}>
-                <div className="product-image" style={{ "--image": `url(${product.imageUrl})` }}>
-                  <img src={product.imageUrl} alt={product.name} loading="lazy" />
+                <div className="product-image" style={{ "--image": `url(${assetUrl(product.imageUrl)})` }}>
+                  <img src={assetUrl(product.imageUrl)} alt={product.name} loading="lazy" />
                 </div>
                 <strong>{product.name}</strong>
                 <span>{product.budgetMin}-{product.budgetMax} 元</span>
@@ -1120,8 +1123,8 @@ function MallScreen({
 
       {serviceProduct && (
         <article className="mall-service-cta">
-          <div className="product-image" style={{ "--image": `url(${serviceProduct.imageUrl})` }}>
-            <img src={serviceProduct.imageUrl} alt={serviceProduct.name} loading="lazy" />
+          <div className="product-image" style={{ "--image": `url(${assetUrl(serviceProduct.imageUrl)})` }}>
+            <img src={assetUrl(serviceProduct.imageUrl)} alt={serviceProduct.name} loading="lazy" />
           </div>
           <div className="mall-service-body">
             <span className="recommend-label">人工服务</span>
@@ -1211,8 +1214,8 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
           <div className="preview-plan-list console-plan-list">
             {previewProducts.map((product) => (
               <article key={product.id}>
-                <span className="preview-product-thumb" style={{ "--image": `url(${product.imageUrl})` }}>
-                  <img src={product.imageUrl} alt={product.name} loading="lazy" />
+                <span className="preview-product-thumb" style={{ "--image": `url(${assetUrl(product.imageUrl)})` }}>
+                  <img src={assetUrl(product.imageUrl)} alt={product.name} loading="lazy" />
                 </span>
                 <div>
                   <strong>{product.name}</strong>
@@ -1365,8 +1368,8 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
               {post.images?.length > 0 && (
                 <div className={`post-image-grid count-${Math.min(post.images.length, 2)}`}>
                   {post.images.slice(0, 2).map((imageUrl) => (
-                    <span className="post-image-frame" key={imageUrl} style={{ "--image": `url(${imageUrl})` }}>
-                      <img src={imageUrl} alt={`${post.title}配图`} />
+                    <span className="post-image-frame" key={imageUrl} style={{ "--image": `url(${assetUrl(imageUrl)})` }}>
+                      <img src={assetUrl(imageUrl)} alt={`${post.title}配图`} />
                     </span>
                   ))}
                 </div>

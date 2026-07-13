@@ -24,7 +24,8 @@ import {
   getRisksBySpace,
   getSafetyTier,
   getSpaceById,
-  matchProductsForRisks
+  matchProductsForRisks,
+  resolvePublicAssetUrl
 } from "./logic.js";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -38,6 +39,27 @@ const getCssRule = (styles, selector) => {
 };
 
 describe("demo logic", () => {
+  it("resolves public assets under the deployment base path", () => {
+    expect(resolvePublicAssetUrl("/assets/spaces/bathroom.png", "/")).toBe(
+      "/assets/spaces/bathroom.png"
+    );
+    expect(resolvePublicAssetUrl("/assets/spaces/bathroom.png", "/web-demo/")).toBe(
+      "/web-demo/assets/spaces/bathroom.png"
+    );
+    expect(resolvePublicAssetUrl("https://example.com/image.png", "/web-demo/")).toBe(
+      "https://example.com/image.png"
+    );
+  });
+
+  it("renders data-driven images through the deployment asset resolver", () => {
+    const appSource = readFileSync(appPath, "utf8");
+
+    expect(appSource).toContain("resolvePublicAssetUrl");
+    expect(appSource).toContain("const assetUrl = (path) =>");
+    expect(appSource).toContain("assetUrl(product.imageUrl)");
+    expect(appSource).toContain("assetUrl(imageUrl)");
+  });
+
   it("keeps the three product-level entrances visible", () => {
     expect(coreEntrances.map((entry) => entry.id)).toEqual(["scan", "mall", "community"]);
     expect(coreEntrances.map((entry) => entry.label)).toEqual(["扫描评估", "方案商城", "效果社区"]);
@@ -421,7 +443,9 @@ describe("demo logic", () => {
 
     expect(appSource).toContain("setPlanItemIds(nextMatchedProducts.slice(0, 2)");
     expect(appSource).toContain("Number(recommendedIds.has(b.id)) - Number(recommendedIds.has(a.id))");
-    expect(appSource).toContain('style={{ "--image": `url(${scanPreviewImages[currentSpace.id]})` }}');
+    expect(appSource).toContain(
+      'style={{ "--image": `url(${assetUrl(scanPreviewImages[currentSpace.id])})` }}'
+    );
     expect(styles).toContain('var(--image, url("/assets/community/bathroom-after.png"))');
   });
 
