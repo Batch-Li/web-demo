@@ -17,6 +17,7 @@ import {
 import {
   buildReport,
   calculateSafetyScore,
+  estimateProjectedSafetyScore,
   getCaseBySpace,
   getFeedbackDelta,
   getManualReviewItems,
@@ -25,7 +26,9 @@ import {
   getSafetyTier,
   getSpaceById,
   matchProductsForRisks,
-  resolvePublicAssetUrl
+  prioritizeRisksForProfile,
+  resolvePublicAssetUrl,
+  selectInitialPlanProducts
 } from "./logic.js";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -83,6 +86,7 @@ describe("demo logic", () => {
   });
 
   it("makes every mall item look like a real product listing", () => {
+    expect(products.length).toBeGreaterThanOrEqual(20);
     products.forEach((product) => {
       expect(product.imageUrl).toMatch(/^\/assets\/products\/.+\.(png|jpg|jpeg|webp)$/);
       expect(product.rating).toBeGreaterThanOrEqual(4);
@@ -97,8 +101,8 @@ describe("demo logic", () => {
     const communityImages = communityPosts.flatMap((post) => post.images ?? []);
     const assetPaths = [...productImages, ...communityImages];
 
-    expect(new Set(productImages).size).toBeGreaterThanOrEqual(8);
-    expect(new Set(communityImages).size).toBeGreaterThanOrEqual(6);
+    expect(new Set(productImages).size).toBeGreaterThanOrEqual(20);
+    expect(new Set(communityImages).size).toBeGreaterThanOrEqual(14);
     productImages.forEach((imageUrl) => {
       expect(imageUrl).toMatch(/^\/assets\/products\/.+\.(png|jpg|jpeg|webp)$/);
     });
@@ -108,19 +112,67 @@ describe("demo logic", () => {
     assetPaths.forEach((imageUrl) => {
       expect(existsSync(path.join(publicDir, imageUrl))).toBe(true);
     });
+
+    const hashes = assetPaths.map((assetPath) =>
+      createHash("sha256").update(readFileSync(path.join(publicDir, assetPath))).digest("hex")
+    );
+    expect(new Set(hashes).size).toBe(hashes.length);
+  });
+
+  it("provides a complete real-content community feed", () => {
+    const postTopics = new Set(communityPosts.map((post) => post.topic));
+    const coveredSpaces = new Set(communityPosts.map((post) => post.space));
+
+    expect(communityPosts.length).toBeGreaterThanOrEqual(10);
+    expect(postTopics).toEqual(new Set(["case", "question", "share", "service"]));
+    expect(coveredSpaces).toEqual(
+      new Set(["bathroom", "bedroom", "corridor", "kitchen", "living", "balcony"])
+    );
+    communityPosts.forEach((post) => {
+      expect(post.publishedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/);
+      expect(post.images.length).toBeGreaterThanOrEqual(1);
+      expect(post.images.length).toBeLessThanOrEqual(2);
+    });
+  });
+
+  it("keeps space, risk, product and community records referentially consistent", () => {
+    const riskIds = new Set(riskRules.map((risk) => risk.id));
+
+    spaces.forEach((space) => {
+      expect(space.riskCount).toBe(riskRules.filter((risk) => risk.space === space.id).length);
+      expect(scanTasks[space.id]).toBeDefined();
+    });
+    products.forEach((product) => {
+      expect(product.riskIds.length).toBeGreaterThan(0);
+      product.riskIds.forEach((riskId) => expect(riskIds.has(riskId)).toBe(true));
+    });
+    communityPosts.forEach((post) => {
+      expect(post.imageAlts).toHaveLength(post.images.length);
+      expect(post.imageAlts.every((alt) => alt.trim().length >= 4)).toBe(true);
+    });
   });
 
   it("keeps product images semantically mapped to each product", () => {
     const expectedImageById = {
       grab_bar_l: "/assets/products/grab-bar-l.png",
-      vertical_bar: "/assets/products/vertical-bar.png",
+      vertical_bar: "/assets/products/straight-grab-bar.jpg",
       anti_slip_mat: "/assets/products/anti-slip-mat.png",
-      anti_slip_coating: "/assets/products/anti-slip-coating.png",
+      anti_slip_coating: "/assets/products/anti-slip-service.jpg",
       threshold_ramp: "/assets/products/threshold-ramp.png",
       motion_night_light: "/assets/products/motion-night-light.png",
       bed_rail: "/assets/products/bed-rail.png",
       corner_guard: "/assets/products/corner-guard.png",
       cable_tray: "/assets/products/cable-tray.png",
+      folding_grab_bar: "/assets/products/folding-grab-bar.jpg",
+      shower_chair: "/assets/products/shower-chair.jpg",
+      toilet_frame: "/assets/products/toilet-frame.jpg",
+      transfer_bench: "/assets/products/transfer-bench.jpg",
+      raised_toilet_seat: "/assets/products/raised-toilet-seat.jpg",
+      sofa_assist: "/assets/products/sofa-assist.jpg",
+      anti_slip_strips: "/assets/products/anti-slip-strips.jpg",
+      motion_light_bar: "/assets/products/motion-light-bar.jpg",
+      rug_grippers: "/assets/products/rug-grippers.jpg",
+      kitchen_mat: "/assets/products/kitchen-mat.jpg",
       layout_review: "/assets/products/layout-review.png"
     };
 
@@ -132,18 +184,27 @@ describe("demo logic", () => {
   it("uses post images that match the post topic", () => {
     const expectedImagesById = {
       post_bathroom_grab_bar: [
-        "/assets/community/bathroom-after.png",
-        "/assets/community/bathroom-grab-bar.png"
+        "/assets/community/bathroom-accessible.jpg",
+        "/assets/community/bathroom-care.jpg"
       ],
       post_bedroom_light: [
-        "/assets/community/bedroom-night-light.png",
-        "/assets/community/bedroom-bed-rail.png"
+        "/assets/community/bedroom-night-real.jpg",
+        "/assets/community/bedroom-senior.jpg"
       ],
-      post_threshold_question: ["/assets/community/threshold-question.png"],
-      post_corridor_wire: [
-        "/assets/community/corridor-cable.png",
-        "/assets/community/service-consultation.png"
-      ]
+      post_threshold_question: ["/assets/community/threshold-detail.jpg"],
+      post_corridor_wire: ["/assets/community/corridor-floor.jpg"],
+      post_kitchen_mat: ["/assets/community/kitchen-senior.jpg"],
+      post_living_sofa: ["/assets/community/living-room-senior.jpg"],
+      post_balcony_threshold: ["/assets/community/balcony-senior.jpg"],
+      post_home_visit: [
+        "/assets/community/home-consultation.jpg",
+        "/assets/community/home-measurement.jpg"
+      ],
+      post_rollator_path: [
+        "/assets/community/rollator-home.jpg",
+        "/assets/community/doorway-rollator.jpg"
+      ],
+      post_shower_chair: ["/assets/community/bathroom-caregiver.jpg"]
     };
 
     communityPosts.forEach((post) => {
@@ -151,32 +212,11 @@ describe("demo logic", () => {
     });
   });
 
-  it("keeps local image file contents aligned with their semantic asset names", () => {
-    const expectedHashes = {
-      "/assets/products/grab-bar-l.png": "a5646f205b9ab7a2",
-      "/assets/products/vertical-bar.png": "7f962dc4408cec13",
-      "/assets/products/anti-slip-mat.png": "d22ed79c718519dc",
-      "/assets/products/anti-slip-coating.png": "27500deb2b6155f3",
-      "/assets/products/threshold-ramp.png": "3ce348e086d63d9d",
-      "/assets/products/motion-night-light.png": "8d6891c1494969d0",
-      "/assets/products/bed-rail.png": "baeab30338fdd25e",
-      "/assets/products/corner-guard.png": "4e20da58b4fb6fd3",
-      "/assets/products/cable-tray.png": "c15a591742c14e98",
-      "/assets/products/layout-review.png": "89b5abf89530b064",
-      "/assets/community/bathroom-after.png": "a38fe9483d3d133f",
-      "/assets/community/bathroom-grab-bar.png": "892fcc6c31dc15d0",
-      "/assets/community/bedroom-night-light.png": "39440a68c768e118",
-      "/assets/community/bedroom-bed-rail.png": "8d6891c1494969d0",
-      "/assets/community/threshold-question.png": "a38fe9483d3d133f",
-      "/assets/community/corridor-cable.png": "cacb6d7c2819cdb3",
-      "/assets/community/service-consultation.png": "d31ab21bb50e5777"
-    };
-
-    Object.entries(expectedHashes).forEach(([assetPath, expectedHash]) => {
-      const buffer = readFileSync(path.join(publicDir, assetPath));
-      const actualHash = createHash("sha256").update(buffer).digest("hex").slice(0, 16);
-      expect(actualHash).toBe(expectedHash);
-    });
+  it("does not silently fall back to another room or case", () => {
+    expect(getSpaceById(spaces, "")).toBeNull();
+    expect(getSpaceById(spaces, "missing-space")).toBeNull();
+    expect(getCaseBySpace(sampleCases, "")).toBeNull();
+    expect(getCaseBySpace(sampleCases, "missing-space")).toBeNull();
   });
 
   it("removes obsolete card-stack selectors from the marketplace and community CSS", () => {
@@ -268,14 +308,27 @@ describe("demo logic", () => {
     expect(previewSource).toContain("确认方案单");
   });
 
-  it("uses a narrower mobile shell and compact app navigation", () => {
+  it("uses iPhone 16 screen geometry and system chrome", () => {
+    const appSource = readFileSync(appPath, "utf8");
     const styles = readFileSync(stylesPath, "utf8");
 
-    expect(getCssRule(styles, ".stage")).toContain("390px");
-    expect(getCssRule(styles, ".phone-frame")).toContain("390px");
-    expect(getCssRule(styles, ".phone-frame")).not.toContain("430px");
+    expect(getCssRule(styles, ".stage")).toContain("409px");
+    expect(getCssRule(styles, ".iphone-device")).toContain("--iphone-screen-width: 393px");
+    expect(getCssRule(styles, ".iphone-device")).toContain("--iphone-screen-height: 852px");
+    expect(getCssRule(styles, ".iphone-device")).toContain("aspect-ratio: 409 / 868");
     expect(getCssRule(styles, ".progress-rail")).toContain("grid-template-columns: minmax(0, 1fr)");
-    expect(getCssRule(styles, ".progress-rail button")).toContain("border-radius: 999px");
+    expect(appSource).toContain("ios-status-icons");
+    expect(appSource).toContain("device-button-power");
+    expect(appSource).toContain("device-button-camera");
+    expect(appSource).not.toContain("ios-signal");
+    expect(appSource).not.toContain("ios-wifi");
+    expect(appSource).not.toContain("ios-battery");
+    expect(appSource).not.toContain("<span>5G</span>");
+    expect(styles).toContain("@media (max-width: 600px)");
+    expect(styles).not.toContain("@media (max-width: 960px)");
+    expect(styles).toMatch(
+      /\.phone-status,\s*\.device-island,\s*\.device-home,\s*\.device-button\s*\{\s*display: none;/
+    );
   });
 
   it("keeps AI analysis after capture in a dedicated buffered recognition step", () => {
@@ -324,11 +377,10 @@ describe("demo logic", () => {
     expect(analysisSource).toContain("缓冲识别");
     expect(analysisSource).toContain("识别完成");
     expect(analysisSource).toContain("评估报告已生成");
-    expect(analysisSource).toContain("analysis-complete-feedback");
     expect(analysisSource).toContain("analysis-command-center");
     expect(analysisSource).toContain("analysis-inline-recognition");
     expect(analysisSource).toContain("analysis-live-feed");
-    expect(analysisSource).toContain("analysis-signal-grid");
+    expect(analysisSource).not.toContain("analysis-signal-grid");
     expect(analysisSource).toContain("智能评估");
     expect(analysisSource).toContain("analysisProgressTargets");
     expect(analysisSource).toContain("setAnalysisProgress");
@@ -336,7 +388,7 @@ describe("demo logic", () => {
     expect(analysisSource).toContain("processingValue");
     expect(analysisSource).toContain("completeValue");
     expect(analysisSource).toContain("getAnalysisItemValue");
-    expect(analysisSource).toContain('{analysisComplete && (\n        <>\n          <section className="analysis-signal-grid"');
+    expect(analysisSource).toContain("analysis-result-summary");
     expect(analysisSource).not.toContain("sourceFrames");
     expect(analysisSource).not.toContain("analysisCopy");
     expect(analysisSource).not.toContain("source-frame-strip");
@@ -352,7 +404,7 @@ describe("demo logic", () => {
     expect(analysisSource).toContain("analysisComplete");
     const commandCenterSource = analysisSource.slice(
       analysisSource.indexOf("analysis-command-center"),
-      analysisSource.indexOf("<section className=\"analysis-signal-grid\"")
+      analysisSource.indexOf("<section className=\"analysis-live-feed\"")
     );
     expect(commandCenterSource).toContain("analysis-inline-recognition");
     expect(commandCenterSource).toContain("analysis-progress-panel");
@@ -370,12 +422,12 @@ describe("demo logic", () => {
     expect(styles).toContain(".analysis-command-center");
     expect(styles).toContain(".analysis-inline-recognition");
     expect(styles).toContain(".analysis-live-feed");
-    expect(styles).toContain(".analysis-signal-grid");
+    expect(styles).not.toContain(".analysis-signal-grid");
     expect(styles).not.toContain(".recognition-viewport");
     expect(styles).not.toContain(".source-frame-strip");
     expect(styles).not.toContain(".data-frame-lines");
     expect(getCssRule(styles, ".analysis-command-center")).not.toContain("margin: 0 -18px");
-    expect(getCssRule(styles, ".analysis-command-center")).toContain("border-radius: 20px");
+    expect(getCssRule(styles, ".analysis-command-center")).toContain("border-radius: var(--radius)");
     expect(getCssRule(styles, ".analysis-command-center")).not.toContain("#18241f");
     expect(getCssRule(styles, ".analysis-progress-track span")).toContain("transition:");
     expect(getCssRule(styles, ".analysis-progress-panel strong")).toContain("color: var(--primary-dark)");
@@ -384,8 +436,8 @@ describe("demo logic", () => {
     expect(styles).toContain(".analysis-wait-button:disabled");
     expect(styles).toContain(".scan-screen > *");
     expect(styles).toContain("flex-shrink: 0");
-    expect(getCssRule(styles, ".task-card")).toContain("grid-template-columns: 42px minmax(0, 1fr) auto");
-    expect(getCssRule(styles, ".task-card button")).not.toContain("margin-top: 10px");
+    expect(getCssRule(styles, ".task-card")).toContain("grid-template-columns: 34px minmax(0, 1fr) auto");
+    expect(scanSource).not.toContain("<button onClick={() => completeTask(task.id)}>");
     expect(styles).not.toContain("scanLine");
     expect(styles).toContain(".engine-flow-grid");
     expect(styles).toContain(".platform-device-panel");
@@ -402,8 +454,8 @@ describe("demo logic", () => {
     expect(homeSource).toContain("scan-home-overview");
     expect(homeSource).toContain("scan-launch-button");
     expect(homeSource).not.toContain("capture-route");
-    expect(homeSource).toContain("开始空间");
-    expect(homeSource).toContain("支持多个家庭空间");
+    expect(homeSource).toContain("开始评估");
+    expect(homeSource).toContain("家庭空间");
     expect(homeSource).not.toContain("currentSpace");
     expect(homeSource).not.toContain("previewImage");
     expect(homeSource).not.toContain("resetForSpace");
@@ -439,27 +491,23 @@ describe("demo logic", () => {
 
   it("keeps mall recommendations tied to the selected report", () => {
     const appSource = readFileSync(appPath, "utf8");
-    const styles = readFileSync(stylesPath, "utf8");
 
-    expect(appSource).toContain("setPlanItemIds(nextMatchedProducts.slice(0, 2)");
+    expect(appSource).toContain("hasAssessment");
+    expect(appSource).toContain("评估后获取专属方案");
+    expect(appSource).not.toContain("setPlanItemIds(nextMatchedProducts.slice(0, 2)");
     expect(appSource).toContain("Number(recommendedIds.has(b.id)) - Number(recommendedIds.has(a.id))");
-    expect(appSource).toContain(
-      'style={{ "--image": `url(${assetUrl(scanPreviewImages[currentSpace.id])})` }}'
-    );
-    expect(styles).toContain('var(--image, url("/assets/community/bathroom-after.png"))');
+    expect(appSource).toContain('hasAssessment ? `${currentSpace.name}方案推荐` : "全屋适老方案"');
+    expect(appSource).toContain("disabled={!hasAssessment}");
   });
 
   it("shows product and case images without cropping important content", () => {
     const styles = readFileSync(stylesPath, "utf8");
 
-    [
-      ".capture-viewfinder img",
-      ".plan-product-thumb",
-      ".product-image img",
-      ".preview-plan-list img",
-      ".post-image-grid img"
-    ].forEach((selector) => {
+    [".plan-product-thumb", ".product-image img", ".preview-plan-list img"].forEach((selector) => {
       expect(getCssRule(styles, selector)).toContain("object-fit: contain");
+    });
+    [".capture-viewfinder img", ".post-image-grid img"].forEach((selector) => {
+      expect(getCssRule(styles, selector)).toContain("object-fit: cover");
     });
   });
 
@@ -491,7 +539,7 @@ describe("demo logic", () => {
     expect(appSource).toContain("保存老人情况");
     expect(appSource).not.toContain("拍摄此处");
     expect(appSource).toContain("光线/对焦检查");
-    expect(appSource).toContain("结合老人情况的重点提示");
+    expect(appSource).toContain("老人情况调整提示顺序");
     expect(appSource).toContain("age-stepper");
     expect(appSource).toContain("减少年龄");
     expect(appSource).toContain("增加年龄");
@@ -516,6 +564,43 @@ describe("demo logic", () => {
 
     expect(risks).toHaveLength(3);
     expect(risks[0].level).toBe("高");
+  });
+
+  it("uses the elder profile to prioritize matching risks without changing the base score", () => {
+    const risks = getRisksBySpace(riskRules, "bedroom");
+    const prioritized = prioritizeRisksForProfile(risks, {
+      mobility: "行动基本自理",
+      night: "每晚起夜 2 次以上",
+      notes: "夜间视物较慢"
+    });
+
+    expect(prioritized[0].id).toBe("night_lighting");
+    expect(calculateSafetyScore(prioritized)).toBe(calculateSafetyScore(risks));
+  });
+
+  it("changes the projected score with selected risk coverage", () => {
+    const risks = getRisksBySpace(riskRules, "bathroom");
+    const currentScore = calculateSafetyScore(risks);
+    const fullSelection = matchProductsForRisks(risks, products);
+    const partialSelection = fullSelection.filter((product) => product.id === "grab_bar_l");
+
+    expect(estimateProjectedSafetyScore({ currentScore, benchmarkScore: 83, risks, selectedProducts: [] })).toBe(currentScore);
+    expect(estimateProjectedSafetyScore({ currentScore, benchmarkScore: 83, risks, selectedProducts: partialSelection })).toBeGreaterThan(currentScore);
+    expect(estimateProjectedSafetyScore({ currentScore, benchmarkScore: 83, risks, selectedProducts: fullSelection })).toBe(83);
+  });
+
+  it("builds an initial plan that covers different risks instead of duplicate products", () => {
+    const risks = getRisksBySpace(riskRules, "bathroom");
+    const matched = matchProductsForRisks(risks, products);
+    const initialPlan = selectInitialPlanProducts(matched, risks, 3);
+    const coveredRiskIds = new Set(initialPlan.flatMap((product) => product.riskIds));
+
+    expect(initialPlan.map((product) => product.id)).toEqual([
+      "grab_bar_l",
+      "threshold_ramp",
+      "anti_slip_mat"
+    ]);
+    risks.forEach((risk) => expect(coveredRiskIds.has(risk.id)).toBe(true));
   });
 
   it("matches products from risk ids instead of generic shop categories", () => {

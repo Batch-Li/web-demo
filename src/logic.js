@@ -15,13 +15,37 @@ export function resolvePublicAssetUrl(assetPath, baseUrl = "/") {
 }
 
 export function getSpaceById(spaces, spaceId) {
-  return spaces.find((space) => space.id === spaceId) ?? spaces[0];
+  return spaces.find((space) => space.id === spaceId) ?? null;
 }
 
 export function getRisksBySpace(rules, spaceId) {
   return rules
     .filter((rule) => rule.space === spaceId)
     .sort((a, b) => levelWeight[b.level] - levelWeight[a.level]);
+}
+
+export function prioritizeRisksForProfile(risks, profile = {}) {
+  const profileText = [profile.mobility, profile.night, profile.notes, profile.focus]
+    .filter(Boolean)
+    .join(" ");
+
+  const profileWeight = (risk) => {
+    const riskText = `${risk.name} ${risk.riskType} ${risk.rule}`;
+    let score = 0;
+
+    if (/起夜|夜间|视物|照明/.test(profileText) && /照明|暗区/.test(riskText)) score += 4;
+    if (/起夜|夜间|视物|照明/.test(profileText) && /门槛|高差/.test(riskText)) score += 2;
+    if (/助行器|轮椅|手杖/.test(profileText) && /通道|通行|门槛|高差/.test(riskText)) score += 3;
+    if (/起身|膝|支撑/.test(profileText) && /起身|支撑|扶手/.test(riskText)) score += 3;
+    if (/防跌倒/.test(profileText) && /跌倒|绊倒|湿滑/.test(riskText)) score += 1;
+
+    return score;
+  };
+
+  return [...risks].sort((a, b) => {
+    const scoreDifference = profileWeight(b) - profileWeight(a);
+    return scoreDifference || levelWeight[b.level] - levelWeight[a.level];
+  });
 }
 
 export function calculateRiskScore(risks) {
@@ -57,6 +81,20 @@ export function getSafetyTier(score) {
 export function matchProductsForRisks(risks, products) {
   const riskIds = new Set(risks.map((risk) => risk.id));
   return products.filter((product) => product.riskIds.some((riskId) => riskIds.has(riskId)));
+}
+
+export function selectInitialPlanProducts(matchedProducts, risks, limit = 3) {
+  const selected = [];
+
+  for (const risk of risks) {
+    if (selected.length >= limit) break;
+    const candidate = matchedProducts.find(
+      (product) => product.id !== "layout_review" && !selected.includes(product) && product.riskIds.includes(risk.id)
+    );
+    if (candidate) selected.push(candidate);
+  }
+
+  return selected;
 }
 
 export function estimateBudgetRange(matchedProducts) {
@@ -97,16 +135,31 @@ export function buildReport({ space, risks, products }) {
     highPriority,
     budget,
     reviewItems,
-    summary: `${space.name}安全评分 ${score}（${level}），共识别 ${risks.length} 类隐患，其中 ${highPriority.length} 项建议优先处理。系统依据空间状况、老人行为场景和居家安全评估标准生成建议，涉及施工安全的项目进入人工校核。`
+    summary: `识别 ${risks.length} 类隐患，其中 ${highPriority.length} 项建议优先处理。系统依据空间风险与居家安全评估标准计算安全分，老人情况调整提示顺序；涉及施工安全的项目进入人工校核。`
   };
 }
 
 export function getCaseBySpace(sampleCases, spaceId) {
-  return sampleCases.find((caseItem) => caseItem.space === spaceId) ?? sampleCases[0];
+  return sampleCases.find((caseItem) => caseItem.space === spaceId) ?? null;
 }
 
 export function getFeedbackDelta(caseItem) {
   return {
-    value: caseItem.afterRisk - caseItem.beforeRisk
+    value: caseItem ? caseItem.afterRisk - caseItem.beforeRisk : 0
   };
+}
+
+export function estimateProjectedSafetyScore({ currentScore, benchmarkScore, risks, selectedProducts }) {
+  if (!selectedProducts.length || !risks.length) return currentScore;
+
+  const coveredRiskIds = new Set(selectedProducts.flatMap((product) => product.riskIds));
+  const totalWeight = risks.reduce((total, risk) => total + levelWeight[risk.level], 0);
+  const coveredWeight = risks.reduce(
+    (total, risk) => total + (coveredRiskIds.has(risk.id) ? levelWeight[risk.level] : 0),
+    0
+  );
+  const coverage = totalWeight ? coveredWeight / totalWeight : 0;
+  const projectedGain = Math.round((benchmarkScore - currentScore) * coverage);
+
+  return Math.max(currentScore, Math.min(100, currentScore + projectedGain));
 }

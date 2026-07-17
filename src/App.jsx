@@ -44,11 +44,14 @@ import {
 } from "./demoData.js";
 import {
   buildReport,
+  estimateProjectedSafetyScore,
   getCaseBySpace,
   getFeedbackDelta,
   getRisksBySpace,
   getSpaceById,
   matchProductsForRisks,
+  prioritizeRisksForProfile,
+  selectInitialPlanProducts,
   resolvePublicAssetUrl
 } from "./logic.js";
 
@@ -100,6 +103,10 @@ const defaultElderProfile = {
 };
 
 function getProfileInsight(profile, space) {
+  const hasProfileData = [profile.age, profile.living, profile.mobility, profile.night]
+    .some((value) => value && value !== "待确认");
+  if (!hasProfileData) return [];
+
   const tips = [];
 
   if (profile.living.includes("独居") || profile.living.includes("独处")) {
@@ -132,24 +139,26 @@ function App() {
   const [maxUnlockedStep, setMaxUnlockedStep] = useState(0);
 
   const currentSpace = getSpaceById(spaces, spaceId);
-  const activeSpaceId = currentSpace.id;
-  const tasks = scanTasks[activeSpaceId];
-  const risks = useMemo(() => getRisksBySpace(riskRules, activeSpaceId), [activeSpaceId]);
+  const activeSpaceId = currentSpace?.id ?? "";
+  const tasks = activeSpaceId ? scanTasks[activeSpaceId] : [];
+  const baseRisks = useMemo(() => getRisksBySpace(riskRules, activeSpaceId), [activeSpaceId]);
+  const risks = useMemo(
+    () => prioritizeRisksForProfile(baseRisks, elderProfile),
+    [baseRisks, elderProfile]
+  );
   const matchedProducts = useMemo(() => matchProductsForRisks(risks, products), [risks]);
   const report = useMemo(
-    () => buildReport({ space: currentSpace, risks, products: matchedProducts }),
+    () => currentSpace ? buildReport({ space: currentSpace, risks, products: matchedProducts }) : null,
     [currentSpace, matchedProducts, risks]
   );
   const sampleCase = getCaseBySpace(sampleCases, spaceId);
   const feedbackDelta = getFeedbackDelta(sampleCase);
+  const hasAssessment = Boolean(currentSpace && maxUnlockedStep >= 4);
 
   const resetForSpace = (nextSpaceId) => {
-    const nextRisks = getRisksBySpace(riskRules, nextSpaceId);
-    const nextMatchedProducts = matchProductsForRisks(nextRisks, products);
-
     setSpaceId(nextSpaceId);
     setCompletedTasks([]);
-    setPlanItemIds(nextMatchedProducts.slice(0, 2).map((product) => product.id));
+    setPlanItemIds([]);
     setMaxUnlockedStep(2);
   };
 
@@ -178,11 +187,14 @@ function App() {
   const switchEntrance = (entranceId) => {
     if (entranceId === "scan") {
       setActiveEntrance("scan");
-      moveToStep(1);
       return;
     }
 
     setActiveEntrance(entranceId);
+  };
+  const completeAnalysis = () => {
+    setPlanItemIds(selectInitialPlanProducts(matchedProducts, risks, 3).map((product) => product.id));
+    goNext();
   };
   const canGoBack = activeEntrance !== "scan" || step > 0;
 
@@ -194,6 +206,7 @@ function App() {
     report,
     sampleCase,
     feedbackDelta,
+    hasAssessment,
     completedTasks,
     setCompletedTasks,
     elderProfile,
@@ -204,6 +217,7 @@ function App() {
     setCommunityFeed,
     selectedSpaceId: spaceId,
     resetForSpace,
+    completeAnalysis,
     goNext,
     setStep: moveToStep,
     setActiveEntrance
@@ -241,7 +255,7 @@ function App() {
             ))}
           </div>
           <div className="proof-strip">
-            <Metric value={report.score} label="当前安全分" />
+            <Metric value={report?.score ?? "--"} label="当前安全分" />
             <Metric value={`${risks.length}项`} label="风险点" />
             <Metric value={`${matchedProducts.length}个`} label="匹配方案" />
           </div>
@@ -257,50 +271,75 @@ function App() {
 
 function PhoneFrame({ activeEntrance, canGoBack, children, goBack }) {
   const activeMeta = coreEntrances.find((entry) => entry.id === activeEntrance) ?? coreEntrances[0];
+  const currentTime = new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date());
 
   return (
-    <section className="phone-frame" aria-label="智绘适老手机端">
-      <div className="device-island" aria-hidden="true" />
-      <div className="phone-status">
-        <span>09:41</span>
-        <span>5G</span>
-      </div>
-      <header className="phone-header">
-        <button className="icon-button" onClick={goBack} disabled={!canGoBack} aria-label="返回">
-          <ArrowLeft size={18} />
-        </button>
-        <div>
-          <strong>智绘适老</strong>
-          <span>{activeMeta.label}</span>
+    <div className="iphone-device">
+      <span className="device-button device-button-action" aria-hidden="true" />
+      <span className="device-button device-button-volume-up" aria-hidden="true" />
+      <span className="device-button device-button-volume-down" aria-hidden="true" />
+      <span className="device-button device-button-power" aria-hidden="true" />
+      <span className="device-button device-button-camera" aria-hidden="true" />
+      <section className="phone-frame" aria-label="智绘适老手机端">
+        <div className="device-island" aria-hidden="true" />
+        <div className="phone-status">
+          <span className="ios-time">{currentTime}</span>
+          <svg className="ios-status-icons" viewBox="0 0 67 14" aria-hidden="true">
+            <path d="M1 12h3V9H1v3Zm5 0h3V6H6v6Zm5 0h3V3h-3v9Zm5 0h3V0h-3v12Z" fill="currentColor" />
+            <path d="M28.2 5.2a10.4 10.4 0 0 1 13.6 0l1.5-1.7a12.7 12.7 0 0 0-16.6 0l1.5 1.7Zm3 3.3a5.8 5.8 0 0 1 7.6 0l1.5-1.7a8.1 8.1 0 0 0-10.6 0l1.5 1.7ZM35 13l2.4-2.5a3.5 3.5 0 0 0-4.8 0L35 13Z" fill="currentColor" />
+            <rect x="48" y="1" width="16" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="1.2" />
+            <rect x="50" y="3" width="12" height="7" rx="1.5" fill="currentColor" />
+            <path d="M65 4.3v4.4c1 0 1.7-.8 1.7-1.8v-.8c0-1-.7-1.8-1.7-1.8Z" fill="currentColor" opacity=".45" />
+          </svg>
         </div>
-        <span className="icon-button" aria-hidden="true" style={{ visibility: "hidden" }} />
-      </header>
-      {children}
-      <div className="device-home" aria-hidden="true" />
-    </section>
+        <header className="phone-header">
+          {canGoBack ? (
+            <button className="icon-button" onClick={goBack} aria-label="返回">
+              <ArrowLeft size={18} />
+            </button>
+          ) : <span className="header-spacer" aria-hidden="true" />}
+          <div>
+            <strong>智绘适老</strong>
+            <span>{activeMeta.label}</span>
+          </div>
+          <span className="icon-button" aria-hidden="true" style={{ visibility: "hidden" }} />
+        </header>
+        {children}
+        <div className="device-home" aria-hidden="true" />
+      </section>
+    </div>
   );
 }
 
 function ProgressRail({ step, maxUnlockedStep, onStepSelect }) {
+  const phases = [
+    { label: "准备", start: 0, end: 1 },
+    { label: "采集", start: 2, end: 2 },
+    { label: "分析", start: 3, end: 3 },
+    { label: "结果", start: 4, end: 6 }
+  ];
+  const activePhase = phases.findIndex((phase) => step >= phase.start && step <= phase.end);
+
   return (
     <nav className="progress-rail" aria-label="评估流程">
       <div className="progress-context">
-        <span>当前阶段：{scanSteps[step].label}</span>
-        <strong>{step + 1}/{scanSteps.length}</strong>
+        <span>{phases[activePhase].label}</span>
+        <strong>{activePhase + 1}/{phases.length}</strong>
       </div>
       <div className="progress-track">
-        {scanSteps.map((item, index) => {
-          const locked = index > maxUnlockedStep;
+        {phases.map((phase, index) => {
+          const locked = phase.start > maxUnlockedStep;
           return (
             <button
-              key={item.key}
-              className={index === step ? "active" : index < step ? "done" : ""}
-              aria-label={locked ? `${item.label}未解锁` : `切换到${item.label}`}
-              title={locked ? `${item.label}未解锁` : item.label}
+              key={phase.label}
+              className={index === activePhase ? "active" : index < activePhase ? "done" : ""}
+              aria-label={locked ? `${phase.label}未解锁` : `切换到${phase.label}`}
+              title={locked ? `${phase.label}未解锁` : phase.label}
               disabled={locked}
-              onClick={() => onStepSelect(index)}
+              onClick={() => onStepSelect(Math.min(phase.end, maxUnlockedStep))}
             >
               <span aria-hidden="true" />
+              <small>{phase.label}</small>
             </button>
           );
         })}
@@ -336,48 +375,26 @@ function HomeScreen({ setStep }) {
     <section className="screen scan-home-screen">
       <div className="scan-home-hero">
         <div className="scan-home-copy">
-          <span className="eyebrow">空间扫描</span>
+          <span className="eyebrow"><ShieldCheck size={15} /> 居家安全扫描</span>
           <h2>
-            开始空间
-            <br />
-            扫描评估
+            拍完关键视角，<br />再统一智能分析
           </h2>
-          <p>完成一次居家安全评估，输出评估报告和方案清单。</p>
+          <p>先选择空间，按引导完成采集；分析结束后生成风险报告和改造清单。</p>
         </div>
         <button className="scan-launch-button" onClick={() => setStep(1)} aria-label="开始扫描评估">
           <span className="scan-launch-ring">
             <Camera size={34} />
           </span>
-          <strong>开始扫描</strong>
+          <strong>开始评估</strong>
           <span>先选择评估空间</span>
         </button>
       </div>
 
       <div className="scan-home-overview" aria-label="扫描评估概览">
-        <div>
-          <Layers3 size={17} />
-          <strong>{spaces.length} 类空间</strong>
-          <span>支持多个家庭空间</span>
-        </div>
-        <div>
-          <Camera size={17} />
-          <strong>约 4-6 分钟</strong>
-          <span>完成一次空间评估</span>
-        </div>
-        <div>
-          <ClipboardList size={17} />
-          <strong>闭环方案</strong>
-          <span>报告、方案、预览串联</span>
-        </div>
+        <Layers3 size={18} />
+        <div><strong>{spaces.length} 类家庭空间</strong><span>单空间约 4-6 分钟</span></div>
+        <ArrowRight size={17} />
       </div>
-
-      <button className="continue-plan" onClick={() => setStep(1)}>
-        <div>
-          <span>下一步</span>
-          <strong>选择评估空间</strong>
-        </div>
-        <ArrowRight size={18} />
-      </button>
     </section>
   );
 }
@@ -387,7 +404,7 @@ function SpaceScreen({ currentSpace, selectedSpaceId, elderProfile, setElderProf
 
   return (
     <section className="screen">
-      <SectionTitle eyebrow="本次评估" title="先确认对象，再选择空间" text="老人情况会影响风险权重；空间选择决定后续采集视角。" />
+      <SectionTitle eyebrow="本次评估" title="确认对象与空间" text="老人情况调整提示顺序，空间选择决定采集视角和评估准则。" />
       <ProfilePanel profile={elderProfile} setProfile={setElderProfile} />
       <div className="space-selector-head">
         <div>
@@ -409,7 +426,6 @@ function SpaceScreen({ currentSpace, selectedSpaceId, elderProfile, setElderProf
             </span>
             <span className="space-scene">{space.scene}</span>
             <strong>{space.name}</strong>
-            <p>{space.description}</p>
             <div>
               <span>{space.riskCount} 类高频风险</span>
               <span>{space.time}</span>
@@ -443,8 +459,8 @@ function ScanScreen({
       return next;
     });
   };
-  const progress = Math.round((completedTasks.length / tasks.length) * 100);
-  const previewImage = scanPreviewImages[currentSpace.id] ?? scanPreviewImages.bathroom;
+  const progress = tasks.length ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
+  const previewImage = scanPreviewImages[currentSpace.id];
   const captureComplete = completedTasks.length >= tasks.length;
   const currentTask = tasks.find((task) => !completedTasks.includes(task.id)) ?? tasks[tasks.length - 1];
 
@@ -487,11 +503,8 @@ function ScanScreen({
         ) : (
           <>
             <div className="capture-controls">
-              <div>
-                <span>当前空间</span>
-                <strong>{currentSpace.name}</strong>
-              </div>
               <span className="capture-status">光线/对焦检查</span>
+              <span>{currentTask.tip}</span>
             </div>
             <div className="progress-bar">
               <span style={{ width: `${progress}%` }} />
@@ -516,7 +529,7 @@ function ScanScreen({
           <strong>{currentSpace.name}视角采集</strong>
           <span>按顺序补齐关键视角</span>
         </div>
-        <small>{progress}%</small>
+        <small>{completedTasks.length}/{tasks.length}</small>
       </header>
       <div className="task-list capture-task-list">
         {tasks.map((task, index) => {
@@ -529,10 +542,9 @@ function ScanScreen({
                 <p>{task.tip}</p>
                 <span>{task.target}</span>
               </div>
-              <button onClick={() => completeTask(task.id)}>
-                {done ? <CheckCircle2 size={17} /> : <Camera size={17} />}
-                {done ? "已采集" : "拍摄"}
-              </button>
+              <span className="task-state" aria-label={done ? "已采集" : "待采集"}>
+                {done ? <CheckCircle2 size={18} /> : <span />}
+              </span>
             </article>
           );
         })}
@@ -555,7 +567,7 @@ function ScanScreen({
   );
 }
 
-function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext }) {
+function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, completeAnalysis }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [analysisProgress, setAnalysisProgress] = useState(7);
   const analysisItems = [
@@ -636,8 +648,8 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
           </div>
           <div>
             <span>当前识别</span>
-            <strong>{activeItem.label}</strong>
-            <small>{activeItemValue}</small>
+            <strong>{analysisComplete ? "评估输出完成" : activeItem.label}</strong>
+            <small>{analysisComplete ? "报告与候选方案已生成" : activeItemValue}</small>
           </div>
         </div>
 
@@ -652,7 +664,7 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
         </div>
       </section>
 
-      <section className="analysis-live-feed" aria-label="缓冲识别进程">
+      {!analysisComplete && <section className="analysis-live-feed" aria-label="缓冲识别进程">
         <header>
           <div>
             <span>智能评估</span>
@@ -673,64 +685,28 @@ function AnalysisScreen({ currentSpace, tasks, risks, matchedProducts, goNext })
             </article>
           );
         })}
-      </section>
+      </section>}
 
       {analysisComplete && (
-        <>
-          <section className="analysis-signal-grid" aria-label="分析信号">
-            <div>
-              <span>采集画面</span>
-              <strong>{tasks.length}</strong>
-              <small>全部就绪</small>
-            </div>
-            <div>
-              <span>风险点</span>
-              <strong>{risks.length}</strong>
-              <small>已完成评估</small>
-            </div>
-            <div>
-              <span>待复核</span>
-              <strong>{risks.filter((risk) => risk.requiresReview).length} 项</strong>
-              <small>建议人工确认</small>
-            </div>
-          </section>
-
-          <section className="analysis-risk-strip" aria-label="已识别风险点">
+        <section className="analysis-result-summary" aria-label="识别结果摘要">
+          <header>
+            <CheckCircle2 size={21} />
+            <div><strong>识别 {risks.length} 类风险</strong><span>{risks.filter((risk) => risk.requiresReview).length} 项需要人工确认</span></div>
+          </header>
+          <div>
             {priorityRisks.map((risk) => (
               <span key={risk.id}>
                 <ShieldCheck size={14} />
                 {risk.name}
               </span>
             ))}
-          </section>
-
-          <section className="analysis-buffer-summary">
-            <div>
-              <span>识别对象</span>
-              <strong>{currentSpace.name}</strong>
-            </div>
-            <div>
-              <span>风险点</span>
-              <strong>{risks.length} 项</strong>
-            </div>
-            <div>
-              <span>改造方案</span>
-              <strong>{matchedProducts.length} 项</strong>
-            </div>
-          </section>
-
-          <section className="analysis-complete-feedback" role="status">
-            <CheckCircle2 size={20} />
-            <div>
-              <strong>评估报告已生成</strong>
-              <span>已识别 {risks.length} 类风险点，匹配 {matchedProducts.length} 项方案。</span>
-            </div>
-          </section>
-        </>
+          </div>
+          <small>评估报告已生成，并筛选出 {matchedProducts.length} 项候选方案。</small>
+        </section>
       )}
 
       {analysisComplete ? (
-        <button className="primary-button full" onClick={goNext}>
+        <button className="primary-button full" onClick={completeAnalysis}>
           查看评估结果
           <ArrowRight size={18} />
         </button>
@@ -771,7 +747,7 @@ function ReportScreen({ currentSpace, elderProfile, risks, report, goNext, setSt
       <p className="report-summary">{report.summary}</p>
 
       <section className="profile-insight">
-        <span>结合老人情况的重点提示</span>
+        <span>老人情况调整提示顺序</span>
         {profileTips.length > 0 ? (
           <ul>
             {profileTips.map((tip) => (
@@ -793,20 +769,12 @@ function ReportScreen({ currentSpace, elderProfile, risks, report, goNext, setSt
               </div>
               <strong>{risk.level}</strong>
             </header>
-            <div className="evidence-list">
-              {risk.evidence.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </div>
-            <div className="rule-trace">
-              <AlertTriangle size={15} />
-              <span>{risk.rule}</span>
-            </div>
-            <p>{risk.action}</p>
             {expandedRiskId === risk.id && (
               <div className="risk-detail-panel">
                 <strong>为什么判定为风险</strong>
                 <span>{risk.evidence.join("，")}。{risk.rule}</span>
+                <strong>建议处理</strong>
+                <span>{risk.action}</span>
               </div>
             )}
             <div className="risk-actions">
@@ -846,7 +814,7 @@ function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemI
 
   return (
     <section className="screen">
-      <SectionTitle eyebrow="方案匹配" title="生成改造方案" text="按风险优先级和老人情况，匹配产品与改造方案。" />
+      <SectionTitle eyebrow="方案匹配" title="生成改造方案" text="按风险优先级和空间条件匹配产品与服务。" />
 
       <section className="decision-engine-panel" aria-label="方案匹配">
         <header>
@@ -889,7 +857,7 @@ function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemI
       <div className="budget-card">
         <div>
           <span>当前方案清单</span>
-          <strong>{selectedProducts.length} 项 · {selectedBudget.min || report.budget.min} - {selectedBudget.max || report.budget.max} 元</strong>
+          <strong>{selectedProducts.length ? `${selectedProducts.length} 项 · ${selectedBudget.min}-${selectedBudget.max} 元` : "尚未选择方案"}</strong>
         </div>
         <small>预算为初步估算，实际报价需人工确认空间条件。</small>
       </div>
@@ -939,6 +907,7 @@ function MatchScreen({ report, matchedProducts, risks, planItemIds, setPlanItemI
 
 function MallScreen({
   currentSpace,
+  hasAssessment,
   matchedProducts,
   report,
   risks,
@@ -949,7 +918,7 @@ function MallScreen({
 }) {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [query, setQuery] = useState("");
-  const recommendedIds = new Set(matchedProducts.map((product) => product.id));
+  const recommendedIds = new Set(hasAssessment ? matchedProducts.map((product) => product.id) : []);
   const normalizedQuery = query.trim().toLowerCase();
   const filteredProducts = products.filter((product) => {
     const productCategory = productCategoryMap[product.category] ?? "all";
@@ -969,6 +938,7 @@ function MallScreen({
     { min: 0, max: 0 }
   );
   const togglePlanItem = (productId) => {
+    if (!hasAssessment) return;
     setPlanItemIds((current) =>
       current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId]
     );
@@ -978,20 +948,31 @@ function MallScreen({
   const featurePool = filteredProducts.filter((product) => product.id !== "layout_review");
   const featuredProduct = featurePool.find((product) => recommendedIds.has(product.id)) || null;
   const restProducts = featurePool.filter((product) => !featuredProduct || product.id !== featuredProduct.id);
-  const gridProducts = restProducts.slice(0, 4);
-  const railProducts = restProducts.slice(4);
+  const gridProducts = restProducts.slice(0, 8);
+  const railProducts = restProducts.slice(8);
 
   return (
     <section className="screen marketplace-screen">
-      <div className="mall-topbar" style={{ "--image": `url(${assetUrl(scanPreviewImages[currentSpace.id])})` }}>
+      <div
+        className={`mall-topbar ${hasAssessment ? "personalized" : "neutral"}`}
+        style={hasAssessment ? { "--image": `url(${assetUrl(scanPreviewImages[currentSpace.id])})` } : undefined}
+      >
         <div>
           <span className="eyebrow">方案商城</span>
-          <h2>{currentSpace.name}方案推荐</h2>
-          <p>根据本次评估报告优先展示匹配商品和服务。</p>
+          <h2>{hasAssessment ? `${currentSpace.name}方案推荐` : "全屋适老方案"}</h2>
+          <p>
+            {hasAssessment ? (
+              "根据本次评估报告优先展示匹配商品和服务。"
+            ) : (
+              <>
+                先浏览适老产品，<br />评估后获取专属方案。
+              </>
+            )}
+          </p>
         </div>
         <div className="mall-risk-chip">
-          <span>风险项</span>
-          <strong>{risks.length}</strong>
+          <span>{hasAssessment ? "风险项" : "评估状态"}</span>
+          <strong>{hasAssessment ? risks.length : "未评估"}</strong>
         </div>
       </div>
 
@@ -1023,7 +1004,7 @@ function MallScreen({
       {featuredProduct && (
         <article className="mall-feature">
           <div className="product-image" style={{ "--image": `url(${assetUrl(featuredProduct.imageUrl)})` }}>
-            <img src={assetUrl(featuredProduct.imageUrl)} alt={featuredProduct.name} loading="lazy" />
+            <img src={assetUrl(featuredProduct.imageUrl)} alt={featuredProduct.name} />
           </div>
           <div className="mall-feature-body">
             <span className="recommend-label">报告推荐</span>
@@ -1034,24 +1015,26 @@ function MallScreen({
               <small>{featuredProduct.rating} 分 · {featuredProduct.sales} 人选用</small>
             </div>
             <button
+              disabled={!hasAssessment}
               className={planItemIds.includes(featuredProduct.id) ? "selected-button" : "primary-button"}
               onClick={() => togglePlanItem(featuredProduct.id)}
             >
-              {planItemIds.includes(featuredProduct.id) ? "已加入方案单" : "加入方案单"}
+              {!hasAssessment ? "评估后加入" : planItemIds.includes(featuredProduct.id) ? "已加入方案单" : "加入方案单"}
             </button>
           </div>
         </article>
       )}
 
       <div className="shelf-heading">
-        <strong>精选好物</strong>
+                  <strong>全部方案 · {filteredProducts.length} 项</strong>
         <button
+          disabled={!hasAssessment}
           onClick={() => {
             setActiveEntrance("scan");
             setStep(5);
           }}
         >
-          方案单 {selectedProducts.length} 项 · {selectedBudget.min}-{selectedBudget.max} 元
+          {hasAssessment ? `方案单 ${selectedProducts.length} 项 · ${selectedBudget.min}-${selectedBudget.max} 元` : "完成评估后生成方案单"}
         </button>
       </div>
 
@@ -1064,7 +1047,7 @@ function MallScreen({
             return (
               <article className={`commerce-tile ${isRecommended ? "recommended" : ""}`} key={product.id}>
                 <div className="product-image" style={{ "--image": `url(${assetUrl(product.imageUrl)})` }}>
-                  <img src={assetUrl(product.imageUrl)} alt={product.name} loading="lazy" />
+                  <img src={assetUrl(product.imageUrl)} alt={product.name} />
                 </div>
                 <div className="commerce-body">
                   <div className="shop-row">
@@ -1092,8 +1075,8 @@ function MallScreen({
                   </div>
                 </details>
                 <div className="commerce-actions">
-                  <button className={isSelected ? "selected-button" : "primary-button"} onClick={() => togglePlanItem(product.id)}>
-                    {isSelected ? "已加入" : "加入方案单"}
+                  <button disabled={!hasAssessment} className={isSelected ? "selected-button" : "primary-button"} onClick={() => togglePlanItem(product.id)}>
+                    {!hasAssessment ? "评估后加入" : isSelected ? "已加入" : "加入方案单"}
                   </button>
                 </div>
               </article>
@@ -1111,7 +1094,7 @@ function MallScreen({
             {railProducts.map((product) => (
               <article className="rail-tile" key={product.id}>
                 <div className="product-image" style={{ "--image": `url(${assetUrl(product.imageUrl)})` }}>
-                  <img src={assetUrl(product.imageUrl)} alt={product.name} loading="lazy" />
+                  <img src={assetUrl(product.imageUrl)} alt={product.name} />
                 </div>
                 <strong>{product.name}</strong>
                 <span>{product.budgetMin}-{product.budgetMax} 元</span>
@@ -1124,17 +1107,18 @@ function MallScreen({
       {serviceProduct && (
         <article className="mall-service-cta">
           <div className="product-image" style={{ "--image": `url(${assetUrl(serviceProduct.imageUrl)})` }}>
-            <img src={assetUrl(serviceProduct.imageUrl)} alt={serviceProduct.name} loading="lazy" />
+            <img src={assetUrl(serviceProduct.imageUrl)} alt={serviceProduct.name} />
           </div>
           <div className="mall-service-body">
             <span className="recommend-label">人工服务</span>
             <strong>{serviceProduct.name}</strong>
             <p>{serviceProduct.subtitle}</p>
             <button
+              disabled={!hasAssessment}
               className={planItemIds.includes(serviceProduct.id) ? "selected-button" : "primary-button"}
               onClick={() => togglePlanItem(serviceProduct.id)}
             >
-              {planItemIds.includes(serviceProduct.id) ? "已加入方案单" : "查看服务"}
+              {!hasAssessment ? "评估后加入" : planItemIds.includes(serviceProduct.id) ? "已加入方案单" : "查看服务"}
             </button>
           </div>
         </article>
@@ -1148,7 +1132,7 @@ function MallScreen({
             setStep(1);
           }}
         >
-          重新评估
+          {hasAssessment ? "重新评估" : "开始评估"}
         </button>
         <button className="primary-button" onClick={() => setActiveEntrance("community")}>
           看效果案例
@@ -1159,11 +1143,16 @@ function MallScreen({
   );
 }
 
-function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, setStep }) {
+function PlanPreviewScreen({ report, sampleCase, feedbackDelta, risks, planItemIds, setStep }) {
   const [confirmed, setConfirmed] = useState(false);
   const selectedProducts = products.filter((product) => planItemIds.includes(product.id));
-  const previewProducts = selectedProducts.length ? selectedProducts : products.slice(0, 3);
-  const expectedScore = Math.min(100, report.score + feedbackDelta.value);
+  const previewProducts = selectedProducts;
+  const expectedScore = estimateProjectedSafetyScore({
+    currentScore: report.score,
+    benchmarkScore: sampleCase?.afterRisk ?? report.score,
+    risks,
+    selectedProducts
+  });
   const reviewItems = report.reviewItems.slice(0, 2);
 
   return (
@@ -1212,7 +1201,7 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
             <strong>改造清单</strong>
           </header>
           <div className="preview-plan-list console-plan-list">
-            {previewProducts.map((product) => (
+            {previewProducts.length ? previewProducts.map((product) => (
               <article key={product.id}>
                 <span className="preview-product-thumb" style={{ "--image": `url(${assetUrl(product.imageUrl)})` }}>
                   <img src={assetUrl(product.imageUrl)} alt={product.name} loading="lazy" />
@@ -1223,23 +1212,23 @@ function PlanPreviewScreen({ report, sampleCase, feedbackDelta, planItemIds, set
                 </div>
                 <CheckCircle2 size={18} />
               </article>
-            ))}
+            )) : <p className="empty-plan-message">尚未选择改造项目，请返回调整清单。</p>}
           </div>
         </section>
       </div>
 
       <div className="case-card preview-case">
         <span>参考效果</span>
-        <h3>{sampleCase.title}</h3>
+        <h3>{sampleCase?.title}</h3>
         <div className="before-after compact">
           <div>
             <small>改造前</small>
-            <strong>{sampleCase.beforeRisk}</strong>
+            <strong>{sampleCase?.beforeRisk}</strong>
           </div>
           <ArrowRight size={17} />
           <div>
             <small>改造后</small>
-            <strong>{sampleCase.afterRisk}</strong>
+            <strong>{sampleCase?.afterRisk}</strong>
           </div>
         </div>
         <div className="delta-line">
@@ -1276,6 +1265,8 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
     const post = {
       id: `post_local_${Date.now()}`,
       topic: "share",
+      space: "living",
+      publishedAt: new Date().toISOString(),
       author: "当前用户",
       role: "家庭用户",
       location: "本地社区",
@@ -1288,7 +1279,8 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
       comments: 0,
       saves: 0,
       badge: "经验分享",
-      images: []
+      images: [],
+      imageAlts: []
     };
 
     setCommunityFeed((current) => [post, ...current]);
@@ -1303,11 +1295,7 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
   return (
     <section className="screen community-screen">
       <div className="community-topbar">
-        <div>
-          <span className="eyebrow">效果交流社区</span>
-          <h2>看改造效果，问真实问题</h2>
-          <p>复扫案例、家庭提问、服务评价都放在同一条信息流里。</p>
-        </div>
+        <h2>效果社区</h2>
         <button className="post-button" onClick={() => setComposerOpen((value) => !value)}>
           <Plus size={18} />
           发帖
@@ -1361,15 +1349,19 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
                 <div className="avatar">{post.author.slice(0, 1)}</div>
                 <div>
                   <strong>{post.author}</strong>
-                  <span>{post.role} · {post.location}</span>
+                  <span>{post.role} · {post.location} · {formatPostTime(post.publishedAt)}</span>
                 </div>
                 <em>{post.badge}</em>
               </header>
               {post.images?.length > 0 && (
                 <div className={`post-image-grid count-${Math.min(post.images.length, 2)}`}>
-                  {post.images.slice(0, 2).map((imageUrl) => (
+                  {post.images.slice(0, 2).map((imageUrl, imageIndex) => (
                     <span className="post-image-frame" key={imageUrl} style={{ "--image": `url(${assetUrl(imageUrl)})` }}>
-                      <img src={assetUrl(imageUrl)} alt={`${post.title}配图`} />
+                      <img
+                        src={assetUrl(imageUrl)}
+                        alt={post.imageAlts?.[imageIndex] ?? `${post.title}配图`}
+                        style={{ objectPosition: post.imagePositions?.[imageIndex] ?? "center" }}
+                      />
                     </span>
                   ))}
                 </div>
@@ -1428,6 +1420,18 @@ function CommunityScreen({ communityFeed, setCommunityFeed, setActiveEntrance })
       </button>
     </section>
   );
+}
+
+function formatPostTime(publishedAt) {
+  if (!publishedAt) return "刚刚";
+
+  const publishedDate = new Date(publishedAt);
+  if (Number.isNaN(publishedDate.getTime())) return "刚刚";
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "numeric",
+    day: "numeric"
+  }).format(publishedDate);
 }
 
 function ProfilePanel({ profile, setProfile }) {
