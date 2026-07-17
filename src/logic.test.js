@@ -316,19 +316,32 @@ describe("demo logic", () => {
     expect(getCssRule(styles, ".iphone-device")).toContain("--iphone-screen-width: 393px");
     expect(getCssRule(styles, ".iphone-device")).toContain("--iphone-screen-height: 852px");
     expect(getCssRule(styles, ".iphone-device")).toContain("aspect-ratio: 409 / 868");
+    expect(getCssRule(styles, ".iphone-device")).toContain("padding: 7px");
+    expect(getCssRule(styles, ".phone-frame")).toContain("border: 0");
     expect(getCssRule(styles, ".progress-rail")).toContain("grid-template-columns: minmax(0, 1fr)");
-    expect(appSource).toContain("ios-status-icons");
+    expect(appSource).toContain("function IosStatusBar");
+    expect(appSource).toContain('className="ios-cellular"');
+    expect(appSource).toContain('className="ios-wifi"');
+    expect(appSource).toContain('className="ios-battery"');
+    expect(appSource).not.toContain("ios-status-icons");
+    expect(appSource).toContain("60_000 - (Date.now() % 60_000)");
+    expect(appSource).toContain("window.setTimeout");
+    expect(appSource).toContain("window.clearTimeout");
     expect(appSource).toContain("device-button-power");
     expect(appSource).toContain("device-button-camera");
-    expect(appSource).not.toContain("ios-signal");
-    expect(appSource).not.toContain("ios-wifi");
-    expect(appSource).not.toContain("ios-battery");
     expect(appSource).not.toContain("<span>5G</span>");
+    expect(getCssRule(styles, ".phone-status")).toContain("height: 54px");
+    expect(getCssRule(styles, ".phone-status")).toContain("grid-template-columns: 82px 1fr 82px");
+    expect(getCssRule(styles, ".ios-system-status")).toContain(
+      "grid-template-columns: 18px 17px 27px"
+    );
     expect(styles).toContain("@media (max-width: 600px)");
     expect(styles).not.toContain("@media (max-width: 960px)");
     expect(styles).toMatch(
       /\.phone-status,\s*\.device-island,\s*\.device-home,\s*\.device-button\s*\{\s*display: none;/
     );
+    expect(appSource).toContain('<span className="no-break">分析结束后</span>');
+    expect(getCssRule(styles, ".no-break")).toContain("white-space: nowrap");
   });
 
   it("keeps AI analysis after capture in a dedicated buffered recognition step", () => {

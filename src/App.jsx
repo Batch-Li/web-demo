@@ -271,7 +271,6 @@ function App() {
 
 function PhoneFrame({ activeEntrance, canGoBack, children, goBack }) {
   const activeMeta = coreEntrances.find((entry) => entry.id === activeEntrance) ?? coreEntrances[0];
-  const currentTime = new Intl.DateTimeFormat("zh-CN", { hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date());
 
   return (
     <div className="iphone-device">
@@ -282,16 +281,7 @@ function PhoneFrame({ activeEntrance, canGoBack, children, goBack }) {
       <span className="device-button device-button-camera" aria-hidden="true" />
       <section className="phone-frame" aria-label="智绘适老手机端">
         <div className="device-island" aria-hidden="true" />
-        <div className="phone-status">
-          <span className="ios-time">{currentTime}</span>
-          <svg className="ios-status-icons" viewBox="0 0 67 14" aria-hidden="true">
-            <path d="M1 12h3V9H1v3Zm5 0h3V6H6v6Zm5 0h3V3h-3v9Zm5 0h3V0h-3v12Z" fill="currentColor" />
-            <path d="M28.2 5.2a10.4 10.4 0 0 1 13.6 0l1.5-1.7a12.7 12.7 0 0 0-16.6 0l1.5 1.7Zm3 3.3a5.8 5.8 0 0 1 7.6 0l1.5-1.7a8.1 8.1 0 0 0-10.6 0l1.5 1.7ZM35 13l2.4-2.5a3.5 3.5 0 0 0-4.8 0L35 13Z" fill="currentColor" />
-            <rect x="48" y="1" width="16" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="1.2" />
-            <rect x="50" y="3" width="12" height="7" rx="1.5" fill="currentColor" />
-            <path d="M65 4.3v4.4c1 0 1.7-.8 1.7-1.8v-.8c0-1-.7-1.8-1.7-1.8Z" fill="currentColor" opacity=".45" />
-          </svg>
-        </div>
+        <IosStatusBar />
         <header className="phone-header">
           {canGoBack ? (
             <button className="icon-button" onClick={goBack} aria-label="返回">
@@ -307,6 +297,59 @@ function PhoneFrame({ activeEntrance, canGoBack, children, goBack }) {
         {children}
         <div className="device-home" aria-hidden="true" />
       </section>
+    </div>
+  );
+}
+
+const iosTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false
+});
+
+function formatIosTime(date) {
+  return iosTimeFormatter.format(date);
+}
+
+function IosStatusBar() {
+  const [time, setTime] = useState(() => formatIosTime(new Date()));
+
+  useEffect(() => {
+    let minuteTimer;
+    const updateTime = () => setTime(formatIosTime(new Date()));
+    const boundaryTimer = window.setTimeout(() => {
+      updateTime();
+      minuteTimer = window.setInterval(updateTime, 60_000);
+    }, 60_000 - (Date.now() % 60_000));
+
+    return () => {
+      window.clearTimeout(boundaryTimer);
+      if (minuteTimer) window.clearInterval(minuteTimer);
+    };
+  }, []);
+
+  return (
+    <div className="phone-status" aria-hidden="true">
+      <span className="ios-time">{time}</span>
+      <span />
+      <div className="ios-system-status">
+        <svg className="ios-cellular" viewBox="0 0 18 12">
+          <rect x="0" y="8" width="3" height="4" rx="1" />
+          <rect x="5" y="5.4" width="3" height="6.6" rx="1" />
+          <rect x="10" y="2.7" width="3" height="9.3" rx="1" />
+          <rect x="15" y="0" width="3" height="12" rx="1" />
+        </svg>
+        <svg className="ios-wifi" viewBox="0 0 17 12">
+          <path d="M1 3.4C5.1-.5 11.9-.5 16 3.4" />
+          <path d="M4.1 6.5c2.5-2.3 6.3-2.3 8.8 0" />
+          <circle cx="8.5" cy="10.1" r="1.35" />
+        </svg>
+        <svg className="ios-battery" viewBox="0 0 27 13">
+          <rect className="ios-battery-shell" x="0.6" y="0.75" width="23" height="11.5" rx="3.1" />
+          <rect className="ios-battery-level" x="2.4" y="2.55" width="15.2" height="7.9" rx="1.65" />
+          <path className="ios-battery-cap" d="M24.55 4.05v4.9c1.25-.2 2.05-1.14 2.05-2.45s-.8-2.25-2.05-2.45Z" />
+        </svg>
+      </div>
     </div>
   );
 }
@@ -379,7 +422,7 @@ function HomeScreen({ setStep }) {
           <h2>
             拍完关键视角，<br />再统一智能分析
           </h2>
-          <p>先选择空间，按引导完成采集；分析结束后生成风险报告和改造清单。</p>
+          <p>先选择空间，按引导完成采集；<span className="no-break">分析结束后</span>生成风险报告和改造清单。</p>
         </div>
         <button className="scan-launch-button" onClick={() => setStep(1)} aria-label="开始扫描评估">
           <span className="scan-launch-ring">

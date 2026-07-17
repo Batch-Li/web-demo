@@ -87,7 +87,7 @@ summary:focus-visible {
   zoom: min(1, calc((100vh - 32px) / 868px));
   aspect-ratio: 409 / 868;
   position: relative;
-  padding: 8px;
+  padding: 7px;
   border: 1px solid #202023;
   border-radius: 58px;
   background:
@@ -106,7 +106,7 @@ summary:focus-visible {
   overflow: hidden;
   position: relative;
   z-index: 2;
-  border: 1px solid #070708;
+  border: 0;
   border-radius: 50px;
   background: var(--surface);
   display: flex;
@@ -187,7 +187,6 @@ summary:focus-visible {
   pointer-events: none;
 }
 
-.phone-status,
 .phone-header {
   display: flex;
   align-items: center;
@@ -197,26 +196,89 @@ summary:focus-visible {
 }
 
 .phone-status {
+  position: relative;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: 82px 1fr 82px;
+  align-items: start;
+  width: 100%;
+  height: 54px;
   min-height: 54px;
-  padding: 9px 22px 4px;
+  flex: 0 0 54px;
+  padding: 0 26px;
+  background: rgba(255, 255, 255, 0.97);
   color: #09090a;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1;
 }
 
 .ios-time {
-  width: 54px;
-  text-align: center;
+  align-self: start;
+  justify-self: start;
+  margin-top: 16px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
 
-.ios-status-icons {
+.ios-system-status {
+  align-self: start;
+  justify-self: end;
+  display: grid;
+  grid-template-columns: 18px 17px 27px;
+  align-items: center;
+  column-gap: 5px;
+  margin-top: 19px;
+  color: currentColor;
+}
+
+.ios-cellular,
+.ios-wifi,
+.ios-battery {
   display: block;
-  width: 67px;
-  height: 14px;
+  overflow: visible;
   color: #09090a;
+}
+
+.ios-cellular {
+  width: 18px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.ios-wifi {
+  width: 17px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+}
+
+.ios-wifi circle {
+  fill: currentColor;
+  stroke: none;
+}
+
+.ios-battery {
+  width: 27px;
+  height: 13px;
+}
+
+.ios-battery-shell {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.05;
+}
+
+.ios-battery-level,
+.ios-battery-cap {
+  fill: currentColor;
+}
+
+.no-break {
+  white-space: nowrap;
 }
 
 .phone-header {
